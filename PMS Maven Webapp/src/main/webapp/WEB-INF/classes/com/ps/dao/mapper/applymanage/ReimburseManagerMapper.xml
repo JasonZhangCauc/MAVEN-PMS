@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ps.dao.applymanage.ReimburseManagerDao">
+	<!-- 报销申请表实体映射类 -->
+  <resultMap id="ReimburseResultMap" type="com.ps.result.applymanage.ReimburseVo" >
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="APPLY_NO" property="applyNo" jdbcType="VARCHAR" />
+    <result column="REIMBURSE_NO" property="reimburseNo" jdbcType="VARCHAR" />
+    <result column="REIMBURSE_TYPE" property="reimburseType" jdbcType="VARCHAR" />
+    <result column="USER_NAME" property="userName" jdbcType="VARCHAR" />
+    <result column="USER_NO" property="userNo" jdbcType="VARCHAR" />
+    <result column="project" property="projectName" jdbcType="VARCHAR" />
+    <result column="DEPART_PLACE" property="departPlace" jdbcType="VARCHAR" />
+    <result column="ARRIVE_PLACE" property="arrivePlace" jdbcType="VARCHAR" />
+    <result column="APPLY_TIME" property="applyTime" jdbcType="VARCHAR" />
+    <result column="AMOUNT" property="amount" jdbcType="VARCHAR" />
+    <result column="REMARK" property="remark" jdbcType="VARCHAR" />
+    <result column="STATUS" property="status" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+  </resultMap>
+  <!-- 差旅报销申请表数据项 -->
+  <sql id="Reimburse_Column_List" >
+    ID,
+    APPLY_NO,
+    REIMBURSE_NO,
+    REIMBURSE_TYPE,
+    USER_NAME,
+    USER_NO,
+    PROJECT,
+    DEPART_PLACE,
+    ARRIVE_PLACE,
+    to_char(APPLY_TIME,'yyyy-mm-dd') APPLY_TIME,
+    AMOUNT,
+    REMARK,
+    CREATE_BY,
+    to_char(CREATE_DATE,'yyyy-mm-dd') CREATE_DATE,
+    STATUS
+  </sql>
+
+	<!-- 根据查询条件获取报销申请信息 -->
+	<select id="queryReimburseInfoByParam" resultMap="ReimburseResultMap"
+			parameterType="com.ps.result.applymanage.ReimburseVo">
+		select 
+		    t1.ID,
+		    t1.APPLY_NO,
+		    t1.REIMBURSE_NO,
+		    t1.REIMBURSE_TYPE,
+		    t1.USER_NAME,
+		    t1.USER_NO,
+		    t3.project_name as project,
+		    t1.DEPART_PLACE,
+		    t1.ARRIVE_PLACE,
+		    to_char(t1.APPLY_TIME,'yyyy-mm-dd') APPLY_TIME,
+		    t1.AMOUNT,
+		    t1.REMARK,
+		    t1.CREATE_BY,
+		    to_char(t1.CREATE_DATE,'yyyy-mm-dd') CREATE_DATE,
+		    t1.STATUS 
+		 from PMS_REIMBURSE t1
+		 left join pms_user t2 on t1.CREATE_BY=t2.id
+		 LEFT JOIN pms_project_baseinfo t3 ON t1.PROJECT=t3.id
+   		 where 1=1
+   		 <!-- 根据ID查询数据 -->
+   		 <if test="id != null and id != ''">
+	  		AND t1.id = #{id,jdbcType=VARCHAR}
+   		 </if>
+   		 <!-- 根据报销申请时间查询数据 -->
+		 <if test="applyTime != null and applyTime != ''">
+	  		AND t1.APPLY_TIME = to_date(#{applyTime,jdbcType=VARCHAR},'YYYY-MM-DD')
+   		 </if>
+   		 <!-- 根据报销申请类型查询数据 -->
+   		 <if test="reimburseType != null and reimburseType != ''">
+	  		AND t1.REIMBURSE_TYPE in (${reimburseType})
+   		 </if>
+   		 <!-- 根据申请人姓名查询数据 -->
+   		 <if test="userName != null and userName != ''">
+	  		AND (t1.USER_NAME like '%'||#{userName}||'%'
+	  			or t1.user_no like '%'||#{userName}||'%')
+   		 </if>
+   		 <!-- 根据差旅报销申请所属项目名称查询数据 -->
+   		 <if test="projectName != null and projectName != ''">
+	  		AND  t1.project in (${projectName})
+   		 </if>
+   		 <!-- 无权限 -->
+    	 <if test="authority == 0">
+     		and 1!=1
+    	 </if>
+     	 <!-- 查看个人 -->
+    	 <if test="authority == 1">
+    		and t1.CREATE_BY = #{authUserId,jdbcType=VARCHAR }
+    	 </if>
+    	 <!-- 查看项目 -->
+    	 <if test="authority == 2">
+	    	<if test="authDeptId != null and authDeptId != '' and authDeptId != 'null' ">
+	    	  AND (((
+			  <foreach collection="authDeptId.split(',')" item="authDept" index="index"
+			      open="" close="" separator="or">
+			      (','||t2.DEPT_ID||',' like '%,'||#{authDept,jdbcType=VARCHAR}||',%')
+			  </foreach>
+			  ) and t1.STATUS != 1 ) or (t1.CREATE_BY = #{authUserId,jdbcType=VARCHAR }) )
+	     	</if>
+	     	<if test="authDeptId == null or authDeptId == '' or authDeptId == 'null' ">
+			  AND 1!=1
+			</if>   	 	
+    	 </if>
+    	 <!-- 查看部门 -->
+    	 <if test="authority == 3">
+	    	<if test="authDeptId != null and authDeptId != '' and authDeptId != 'null' ">
+	    	  AND (((
+			  <foreach collection="authDeptId.split(',')" item="authDept" index="index"
+			      open="" close="" separator="or">
+			      (','||t2.DEPT_ID||',' like '%,'||#{authDept,jdbcType=VARCHAR}||',%')
+			  </foreach>
+			  )and t1.STATUS != 1 ) or (t1.CREATE_BY = #{authUserId,jdbcType=VARCHAR }) )
+	     	</if>
+	     	<if test="authDeptId == null or authDeptId == '' or authDeptId == 'null' ">
+			  AND 1!=1
+			</if>    	 	
+    	 </if>
+    	 <!-- 查看全部 -->
+    	 <if test="authority == 4">
+    	 	and (t1.STATUS != 1 or t1.CREATE_BY = #{authUserId,jdbcType=VARCHAR })
+    	 </if>
+   		<choose>
+			<when test="orderByClause != null and orderByClause != ''">
+				order by ${orderByClause}
+			</when>
+			<otherwise>
+				order by APPLY_TIME DESC
+			</otherwise>
+		</choose>
+	</select>
+	<!--根据报销申请id序列查询申请信息-->
+	<select id="queryReimburseInfoById" resultMap="ReimburseResultMap">
+		select 
+    	<include refid="Reimburse_Column_List" />
+   		from PMS_REIMBURSE
+    	where ID =  #{id,jdbcType=VARCHAR}
+	</select>
+	
+	<!--获取下一序列号-->
+	<select id="getNextId" resultType="Integer">
+		SELECT PMS_REIMBURSE_ID_SEQ.NEXTVAL as id FROM  DUAL
+	</select>
+	
+	
+	
+	<!--添加报销申请  -->
+	<insert id="saveReimbures" parameterType="com.ps.result.applymanage.ReimburseVo">
+    	insert into PMS_REIMBURSE(
+    		    ID,
+   				APPLY_NO,
+    			REIMBURSE_NO,
+    			REIMBURSE_TYPE,
+    			USER_NAME,
+    			USER_NO,
+   				PROJECT,
+    			DEPART_PLACE,
+    			ARRIVE_PLACE,
+    			APPLY_TIME,
+    			AMOUNT,
+    			REMARK,
+    			CREATE_BY,
+    			CREATE_DATE,
+    			STATUS)
+    			values(
+    			#{id,jdbcType=VARCHAR},
+    			#{applyNo,jdbcType=VARCHAR},
+    			#{reimburseNo,jdbcType=VARCHAR},
+    			#{reimburseType,jdbcType=VARCHAR},
+    			#{userName,jdbcType=VARCHAR},
+    			#{userNo,jdbcType=VARCHAR},
+    			#{projectName,jdbcType=VARCHAR},
+    			#{departPlace,jdbcType=VARCHAR},
+    			#{arrivePlace,jdbcType=VARCHAR},
+    			to_date(#{applyTime,jdbcType=VARCHAR},'YYYY-MM-DD'),
+    			#{amount,jdbcType=VARCHAR},
+    			#{remark,jdbcType=VARCHAR},
+    			#{createBy,jdbcType=VARCHAR},
+    			SYSDATE,
+    			#{status,jdbcType=VARCHAR})
+	</insert>
+	<!--更新报销申请信息  -->
+	<update id="updateReimbures" parameterType="com.ps.result.applymanage.ReimburseVo">
+		update PMS_REIMBURSE
+		set
+		REIMBURSE_TYPE = #{reimburseType,jdbcType=VARCHAR},
+		REIMBURSE_NO = #{reimburseNo,jdbcType=VARCHAR},
+		DEPART_PLACE = #{departPlace,jdbcType=VARCHAR},
+    	ARRIVE_PLACE = #{arrivePlace,jdbcType=VARCHAR},
+    	AMOUNT = #{amount,jdbcType=VARCHAR},
+    	PROJECT = #{projectName,jdbcType=VARCHAR},
+    	REMARK = #{remark,jdbcType=VARCHAR}
+    	where
+    	id = #{id,jdbcType=VARCHAR}
+	</update>
+	
+	<!--  -->
+	<delete id="deleteReimburseInfoById">
+		delete from PMS_REIMBURSE where id = #{id,jdbcType=VARCHAR}
+	</delete>
+	
+	<!-- 更新报销申请状态 -->
+	<update id="updateReimburseStatus">
+		update PMS_REIMBURSE set status = #{status} where id = #{id}
+	</update>
+</mapper>

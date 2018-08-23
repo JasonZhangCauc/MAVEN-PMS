@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.contractmanage.ContractManageDao" >
+<!-- 合同维护映射类 -->
+  <resultMap id="ContractResultMap" type="com.ps.result.contractmanage.ContractVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="CREATE_DEPT" property="createDept" jdbcType="VARCHAR" />
+    <result column="LABOR_PRICE" property="laborPrice" jdbcType="VARCHAR" />
+    <result column="FREESERVICE_PERIOD" property="freeservicePeriod" jdbcType="VARCHAR" />
+    <result column="COSTSERVICE_TIME" property="costserviceTime" jdbcType="VARCHAR" />
+    <result column="UPDATE_DATE" property="updateDate" jdbcType="VARCHAR" />
+    <result column="UPDATE_BY" property="updateBy" jdbcType="VARCHAR" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="CONTRACT_NO" property="contractNo" jdbcType="VARCHAR" />
+    <result column="SIGNED_DATE" property="signedDate" jdbcType="VARCHAR" />
+    <result column="BELONG_CUSTOMERID" property="belongCustomerid" jdbcType="VARCHAR" />  
+    <result column="BELONG_PRODUCT" property="belongProduct" jdbcType="VARCHAR" />
+    <result column="CONTRACT_TITLE" property="contractTitle" jdbcType="VARCHAR" />
+    <result column="CONTRACT_AMOUNT" property="contractAmount" jdbcType="VARCHAR" />
+    <result column="CURRENCY" property="currency" jdbcType="VARCHAR" />
+    <result column="EFFECTIVE_DATE" property="effectiveDate" jdbcType="VARCHAR" />
+    <result column="FREE_LIMIT" property="freeLimit" jdbcType="VARCHAR" />
+    <result column="GIVE_DAY" property="giveDay" jdbcType="VARCHAR" />
+    <result column="PAYMENT_REMARK" property="paymentRemark" jdbcType="VARCHAR" />
+    <result column="REMARK" property="remark" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="CONTRACT_STATUS" property="contractStatus" jdbcType="VARCHAR" />
+    <result column="STATUS" property="status" jdbcType="VARCHAR" />
+    <result column="EXAMINE_BY" property="examineBy" jdbcType="VARCHAR" />
+    <result column="EXAMINE_DATE" property="examineDate" jdbcType="VARCHAR" />
+    <result column="CUSTOM_NAME" property="customName" jdbcType="VARCHAR" />
+  </resultMap>
+  <!--查询合同 所有的表字段-->
+  <sql id="Contract_Column_List" >
+    LABOR_PRICE,
+    FREESERVICE_PERIOD,
+    COSTSERVICE_TIME,
+    to_char(UPDATE_DATE,'yyyy-mm-dd') updateDate,
+    UPDATE_BY,
+    ID,
+    CONTRACT_NO,
+    to_char(SIGNED_DATE,'yyyy-mm-dd') signedDate,
+    BELONG_CUSTOMERID belongCustomerid,
+   (SELECT custom_short_Name FROM PMS_CUSTOMER WHERE ID = BELONG_CUSTOMERID) CUSTOM_NAME,
+    BELONG_PRODUCT,
+    CONTRACT_TITLE,
+    CONTRACT_AMOUNT,
+    CURRENCY,
+    to_char(EFFECTIVE_DATE,'yyyy-mm-dd') effectiveDate,
+    FREE_LIMIT,
+    GIVE_DAY,
+    PAYMENT_REMARK,
+    REMARK,
+    CREATE_DEPT,
+    to_char(CREATE_DATE,'yyyy-mm-dd') createDate,
+    CONTRACT_STATUS,
+    EXAMINE_BY, 
+    to_char(EXAMINE_DATE,'yyyy-mm-dd') examineDate
+  </sql>
+  
+  <!-- 根据参数查询合同信息 -->
+  <select id="queryContractInfoByParam" resultMap="ContractResultMap" parameterType="com.ps.result.contractmanage.ContractVo" >
+    select
+    <include refid="Contract_Column_List" />
+    from PMS_CONTRACT a
+    where a.status=0
+    and a.CONTRACT_STATUS in (0,1,2,3)
+    <if test="contractTitle !=null and contractTitle !=''">
+        and a.CONTRACT_TITLE like '%'||#{contractTitle}|| '%'
+    </if>
+    <if test="contractNo !=null and contractNo !=''">
+        and a.CONTRACT_NO like '%'||#{contractNo}|| '%'
+    </if>
+    <if test="belongCustomerid !=null and belongCustomerid !=''">
+        and a.BELONG_CUSTOMERID in (${belongCustomerid})
+    </if>
+    <if test="belongProduct !=null and belongProduct !=''">
+        and a.BELONG_PRODUCT in (${belongProduct})
+    </if>
+    <if test="contractStatus !=null and contractStatus !=''">
+        and a.CONTRACT_STATUS in (${contractStatus})
+    </if>
+    <if test="signStartDate !=null and signStartDate !=''">
+       AND a.SIGNED_DATE>=to_date(#{signStartDate},'yyyy/mm/dd hh24:mi:ss') 
+    </if>
+    <if test="signEndDate !=null and signEndDate !=''">
+        AND to_date(#{signEndDate},'yyyy/mm/dd hh24:mi:ss') >=a.SIGNED_DATE
+    </if>
+    <if test="projectStage !=null and projectStage !=''">
+        and exists (select ID from PMS_RECEIVABLES where a.PROJECT_STAGE= #{projectStage,jdbcType=VARCHAR} )
+    </if>
+    <if test="receivableStatus !=null and receivableStatus !=''">
+        and exists (select ID from PMS_RECEIVABLES where a.RECEIVABLE_STATUS= #{receivableStatus,jdbcType=VARCHAR} )
+    </if>
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by Create_date DESC
+		</otherwise>
+	 </choose>
+  </select>
+  
+  <!-- 根据ID查询合同信息 -->
+  <select id="queryContractById" resultMap="ContractResultMap" parameterType="java.lang.String" >
+    select
+    (SELECT user_name FROM  PMS_USER WHERE ID=a.CREATE_BY) createBy,
+    <include refid="Contract_Column_List" />
+    from PMS_CONTRACT a
+    where ID =  #{id,jdbcType=DECIMAL }
+  </select>
+  
+  <!-- 新增合同信息 -->
+  <insert id="insertContract" parameterType="com.ps.result.contractmanage.ContractVo" >
+    insert into PMS_CONTRACT
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+	    ID,
+	    CREATE_DEPT,
+	    LABOR_PRICE,
+	    FREESERVICE_PERIOD,
+	    COSTSERVICE_TIME,
+	    UPDATE_DATE,
+	    UPDATE_BY,
+	    CONTRACT_NO,
+	    SIGNED_DATE,	   
+	    BELONG_CUSTOMERID,
+	    BELONG_PRODUCT,
+	    CONTRACT_TITLE,
+	    CONTRACT_AMOUNT,
+	    CURRENCY,
+	    EFFECTIVE_DATE,
+	    FREE_LIMIT,
+	    GIVE_DAY,
+	    PAYMENT_REMARK,
+	    REMARK,
+	    CREATE_BY,
+	    CREATE_DATE,
+	    CONTRACT_STATUS,
+	    STATUS
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       PMS_CONTRACT_TB_SEQ.NEXTVAL,
+       #{createDept,jdbcType=VARCHAR },
+       #{laborPrice,jdbcType=VARCHAR },
+       #{freeservicePeriod,jdbcType=VARCHAR },
+       #{costserviceTime,jdbcType=VARCHAR },
+       sysdate,
+       #{updateBy,jdbcType=VARCHAR },
+       #{contractNo,jdbcType=VARCHAR },
+       to_date(#{signedDate},'yyyy-mm-dd'),
+       #{belongCustomerid,jdbcType=VARCHAR },
+       #{belongProduct,jdbcType=VARCHAR },
+       #{contractTitle,jdbcType=VARCHAR },
+       #{contractAmount,jdbcType=VARCHAR },
+       #{currency,jdbcType=VARCHAR },
+	   to_date(#{effectiveDate},'yyyy-mm-dd'),
+       #{freeLimit,jdbcType=VARCHAR },
+       #{giveDay,jdbcType=VARCHAR },
+       #{paymentRemark,jdbcType=VARCHAR },
+       #{remark,jdbcType=VARCHAR },
+       #{createBy,jdbcType=VARCHAR },
+       sysdate,
+       1,
+       0
+    </trim>
+  </insert>
+  
+  <!-- 修改合同信息 -->
+  <update id="updateContract" parameterType="com.ps.result.contractmanage.ContractVo" >
+    update PMS_CONTRACT
+    <set>		
+    		LABOR_PRICE =  #{laborPrice,jdbcType=VARCHAR },
+    		
+    		FREESERVICE_PERIOD =  #{freeservicePeriod,jdbcType=VARCHAR },
+
+    		COSTSERVICE_TIME =  #{costserviceTime,jdbcType=VARCHAR },
+
+    		UPDATE_DATE =  sysdate,
+		
+    		UPDATE_BY =  #{updateBy,jdbcType=VARCHAR },		
+
+    		SIGNED_DATE = to_date(#{signedDate,jdbcType=VARCHAR },'yyyy-mm-dd'),
+
+    		BELONG_CUSTOMERID =  #{belongCustomerid,jdbcType=VARCHAR },
+
+    		BELONG_PRODUCT =  #{belongProduct,jdbcType=VARCHAR },
+
+    		CONTRACT_TITLE =  #{contractTitle,jdbcType=VARCHAR },
+    		
+    		CONTRACT_NO= #{contractNo,jdbcType=VARCHAR },
+
+    		CONTRACT_AMOUNT =  #{contractAmount,jdbcType=VARCHAR },
+
+    		CURRENCY =  #{currency,jdbcType=VARCHAR },
+ 
+    		EFFECTIVE_DATE = to_date(#{effectiveDate,jdbcType=VARCHAR },'yyyy-mm-dd'),
+
+    		FREE_LIMIT =  #{freeLimit,jdbcType=VARCHAR },
+
+    		GIVE_DAY =  #{giveDay,jdbcType=VARCHAR },
+
+    		PAYMENT_REMARK =  #{paymentRemark,jdbcType=VARCHAR },
+
+    		REMARK =  #{remark,jdbcType=VARCHAR }		
+    </set>
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 根据ID删除合同信息 -->
+  <update id="deleteContractById" parameterType="java.lang.String" >
+     update PMS_CONTRACT
+       <set> 
+         status=1
+      </set>
+    where ID =  #{id,jdbcType=DECIMAL }
+   </update>
+  <!-- 提交合同 -->
+  <update id="updateContractSendStatus" parameterType="java.lang.String" >
+     update PMS_CONTRACT
+	   <set > 
+	      CONTRACT_STATUS=2
+	   </set>
+    where ID =  #{id,jdbcType=DECIMAL }
+   </update>
+</mapper>

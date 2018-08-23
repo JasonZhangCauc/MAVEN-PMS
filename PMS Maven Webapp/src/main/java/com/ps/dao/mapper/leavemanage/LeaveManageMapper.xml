@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.leavemanage.LeaveManageDao" >
+<!-- 请假维护映射类 -->
+  <resultMap id="LeaveResultMap" type="com.ps.result.leavemanage.LeaveVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="UPDATE_DATE" property="updateDate" jdbcType="VARCHAR" />
+    <result column="UPDATE_BY" property="updateBy" jdbcType="VARCHAR" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="LEAVE_NO" property="leaveNo" jdbcType="VARCHAR" />
+    <result column="SIGNED_DATE" property="signedDate" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+	<result column="EXAMINE_BY" property="examineBy" jdbcType="VARCHAR" />
+    <result column="EXAMINE_DATE" property="examineDate" jdbcType="VARCHAR" />
+    <result column="LEAVE_STATE" property="leaveState" jdbcType="VARCHAR" />
+    
+    <result column="LEAVE_BY" property="leaveBy" jdbcType="VARCHAR" />
+    <result column="LEAVE_TYPE" property="leaveType" jdbcType="VARCHAR" />
+    <result column="LEAVE_BEGINTIME" property="beginTime" jdbcType="VARCHAR" />
+    <result column="LEAVE_ENDTIME" property="endTime" jdbcType="VARCHAR" />
+   
+    <result column="LEAVE_BYNAME" property="leaveByName" jdbcType="VARCHAR" />
+    <result column="LEAVE_REASON" property="leaveReason" jdbcType="VARCHAR" />
+    <result column="signStartDate" property="signStartDate" jdbcType="VARCHAR" />
+    <result column="signStartDateNext" property="signStartDateNext" jdbcType="VARCHAR" />
+    
+    <result column="user_name" property="userName" jdbcType="VARCHAR" />
+  </resultMap>
+  <!--查询请假 所有的表字段-->
+  <sql id="Leave_Column_List" >
+   
+    a.ID,
+   a.LEAVE_BY,
+   a.LEAVE_TYPE,
+   a.LEAVE_STATE,
+   to_char(a.LEAVE_BEGINTIME,'yyyy-mm-dd hh24:mi') LEAVE_BEGINTIME,
+    to_char(a.LEAVE_ENDTIME,'yyyy-mm-dd hh24:mi') LEAVE_ENDTIME,
+   a.LEAVE_REASON
+  </sql>
+  
+  <!-- 根据参数查询请假信息 -->
+  <select id="queryLeaveInfoByParam" resultMap="LeaveResultMap" parameterType="com.ps.result.leavemanage.LeaveVo" >
+    select
+    <include refid="Leave_Column_List" />
+    ,t2.user_name
+    from PMS_LEAVE a
+     left join pms_user t2 
+    on a.LEAVE_BY = t2.id
+    where 1=1
+    <if test="leaveByName !=null and leaveByName != ''">
+  		and user_name like '%'||#{leaveByName}|| '%'
+  	</if>
+  	 <if test="leaveState !=null and leaveState !=''">
+        and a.LEAVE_STATE in (${leaveState})
+    </if>
+  	 <if test="leaveType !=null and leaveType !=''">
+        and a.LEAVE_TYPE in (${leaveType})
+    </if>
+  	<if test="signStartDate !=null and signStartDate !=''">
+       and a.LEAVE_BEGINTIME &lt;= to_date(#{signStartDateNext,jdbcType=NVARCHAR},'YYYY-MM-DD ')
+       and a.LEAVE_ENDTIME &gt;= to_date(#{signStartDate,jdbcType=NVARCHAR},'YYYY-MM-DD') 
+    </if>
+    
+  	
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by Create_date DESC
+		</otherwise>
+	 </choose>
+  </select>
+  
+  <!-- 根据ID查询请假信息 -->
+  <select id="queryLeaveById" resultMap="LeaveResultMap" parameterType="java.lang.String" >
+    select
+    (SELECT user_name FROM  PMS_USER WHERE ID=a.CREATE_BY) createBy,
+    <include refid="Leave_Column_List" />
+    from PMS_LEAVE a
+    where ID =  #{id,jdbcType=DECIMAL }
+  </select>
+  
+  <!-- 新增请假信息 -->
+  <insert id="insertLeave" parameterType="com.ps.result.leavemanage.LeaveVo" >
+    insert into PMS_LEAVE
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+	    ID,
+	    LEAVE_BY,
+   		LEAVE_TYPE,
+   		LEAVE_BEGINTIME,
+  		LEAVE_ENDTIME,
+  		LEAVE_REASON,
+  		CREATE_BY,
+  		CREATE_DATE,
+  		LEAVE_STATE
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       PMS_LEAVE_TB_SEQ.NEXTVAL,
+        #{createBy,jdbcType=VARCHAR },
+       #{leaveType,jdbcType=VARCHAR },
+       to_date(#{beginTime,jdbcType=VARCHAR },'yyyy-mm-dd hh24:mi:ss'),
+       to_date(#{endTime,jdbcType=VARCHAR },'yyyy-mm-dd hh24:mi:ss'),
+       #{leaveReason,jdbcType=VARCHAR },
+       #{createBy,jdbcType=VARCHAR },
+       sysdate,
+       1
+    </trim>
+  </insert>
+  
+  <!-- 修改请假信息 -->
+  <update id="updateLeave" parameterType="com.ps.result.leavemanage.LeaveVo" >
+    update PMS_LEAVE
+    <set>		
+    		LEAVE_TYPE =  #{leaveType,jdbcType=VARCHAR },
+    		
+    		LEAVE_BEGINTIME = to_date(#{beginTime,jdbcType=VARCHAR },'yyyy-mm-dd hh24:mi:ss'),
+
+    		LEAVE_ENDTIME =   to_date(#{endTime,jdbcType=VARCHAR },'yyyy-mm-dd hh24:mi:ss'),
+    		
+    		LEAVE_REASON = #{leaveReason,jdbcType=VARCHAR },
+
+    		UPDATE_DATE =  sysdate,
+		
+    		UPDATE_BY =  #{updateBy,jdbcType=VARCHAR },		
+
+    		
+    </set>
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 根据ID删除请假信息 -->
+  <delete id="deleteLeaveById" parameterType="java.lang.String" >
+     
+    DELETE FROM  PMS_LEAVE  where ID =  #{id,jdbcType=DECIMAL } 
+   </delete>
+   <!-- 拒绝请假 -->
+  <update id="updateLeaveState" parameterType="java.lang.String" >
+     update PMS_LEAVE
+	   <set > 
+	      LEAVE_STATE=1
+	   </set>
+    where ID =  #{id,jdbcType=DECIMAL }
+   </update>
+    <!-- 通过请假 -->
+  <update id="passLeaveState" parameterType="java.lang.String" >
+     update PMS_LEAVE
+	   <set > 
+	      LEAVE_STATE=3
+	   </set>
+    where ID =  #{id,jdbcType=DECIMAL }
+   </update>
+  <!-- 提交请假 -->
+  <update id="updateLeaveSendStatus" parameterType="java.lang.String" >
+     update PMS_LEAVE
+	   <set > 
+	      LEAVE_STATE=2
+	   </set>
+    where ID =  #{id,jdbcType=DECIMAL }
+   </update>
+</mapper>

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.systemmanage.UpdateLogDao" >
+  <resultMap id="UpdateLogResultMap" type="com.ps.result.systemmanage.UpdateLogVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="UPDATE_DATE" property="updateDate" jdbcType="VARCHAR" />
+    <result column="VERSION_NUM" property="versionNum" jdbcType="VARCHAR" />
+    <result column="UPDATE_CONTENT" property="updateContent" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+  </resultMap>
+  <!--查询字段 所有的表字段-->
+  <sql id="Update_Log_Column_List" >
+    ID,
+    to_char(UPDATE_DATE,'YYYY-MM-DD') UPDATE_DATE,
+    VERSION_NUM,
+    UPDATE_CONTENT,
+    CREATE_BY,
+    to_char(CREATE_DATE,'YYYY-MM-DD') CREATE_DATE
+  </sql>
+  
+  <!-- 根据参数查询列表信息 -->
+  <select id="queryUpdateLogByParam" resultMap="UpdateLogResultMap" parameterType="com.ps.result.systemmanage.UpdateLogVo" >
+    select
+    <include refid="Update_Log_Column_List" />
+    from PMS_UPDATE_LOG
+    where 1=1
+    <if test="updateDate != null and updateDate != ''">
+    	and to_date(UPDATE_DATE,'YYYY-DD-MM')=to_date(#{updateDate,jdbcType=VARCHAR },'YYYY-MM-DD')
+    </if>
+    <if test="updateContent != null and updateContent != ''">
+    	and UPDATE_CONTENT LIKE '%'||#{updateContent,jdbcType=VARCHAR}||'%'
+    </if>
+    <if test="versionNum != null and versionNum != ''">
+    	and VERSION_NUM LIKE '%'||#{versionNum,jdbcType=VARCHAR}||'%'
+    </if>
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by CREATE_DATE
+		</otherwise>
+	</choose>
+  </select>
+  
+  <!-- 根据ID查询列表信息 -->
+  <select id="queryUpdateLogById" resultMap="UpdateLogResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Update_Log_Column_List" />
+    from PMS_UPDATE_LOG
+    where ID =  #{id,jdbcType=DECIMAL }
+  </select>
+  
+  <!-- 新增信息 -->
+  <insert id="insertUpdateLog" parameterType="com.ps.result.systemmanage.UpdateLogVo" >
+    insert into PMS_UPDATE_LOG
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+	    ID,
+	    UPDATE_DATE,
+	    VERSION_NUM,
+	    UPDATE_CONTENT,
+	    CREATE_BY,
+	    CREATE_DATE,
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       PMS_update_log_TB_SEQ.Nextval,
+       to_date(#{updateDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+       #{versionNum,jdbcType=VARCHAR },
+       #{updateContent,jdbcType=VARCHAR },
+       #{createBy,jdbcType=VARCHAR },
+       sysdate,
+    </trim>
+  </insert>
+  
+  <!-- 修改信息 -->
+  <update id="updateUpdateLog" parameterType="com.ps.result.systemmanage.UpdateLogVo" >
+    update PMS_UPDATE_LOG
+    <set >
+   		UPDATE_DATE =  to_date(#{updateDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+   		VERSION_NUM = #{versionNum,jdbcType=VARCHAR },
+   		UPDATE_CONTENT =  #{updateContent,jdbcType=VARCHAR }
+    </set>
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 根据ID删除信息 -->
+  <delete id="deleteUpdateLogById" parameterType="java.lang.String" >
+    delete from PMS_UPDATE_LOG
+    where ID =  #{id,jdbcType=DECIMAL }
+  </delete>
+  
+  <!-- 查询更新日志信息 -->
+  <select id="queryUpdateLogInfo" resultType="com.ps.result.systemmanage.UpdateLogVo" >
+  	select t1.id ID ,t2.user_pic createByPic,t2.user_name createByName,t1.VERSION_NUM versionNum,
+  	t1.update_content updateContent,to_char(t1.update_date,'YYYY-MM-DD') updateDate
+	FROM pms_update_log t1
+	LEFT JOIN pms_user t2 ON t1.create_by=t2.id
+	ORDER BY t1.update_date,t1.create_date
+  </select>
+</mapper>

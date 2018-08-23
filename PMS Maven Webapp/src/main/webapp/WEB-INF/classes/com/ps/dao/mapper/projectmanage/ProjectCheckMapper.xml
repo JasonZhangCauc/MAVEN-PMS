@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.projectmanage.ProjectCheckDao" >
+  <!-- 项目映射实体类 -->
+  <resultMap id="ProjectCheckResultMap" type="com.ps.result.projectmanage.ProjectVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="UPDATE_BY" property="updateBy" jdbcType="VARCHAR" />
+    <result column="UPDATE_DATE" property="updateDate" jdbcType="VARCHAR" />
+    <result column="PROJECT_NAME" property="projectName" jdbcType="VARCHAR" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="PROJECT_NO" property="projectNo" jdbcType="VARCHAR" />
+    <result column="PROJECT_STAGE" property="projectStage" jdbcType="VARCHAR" />
+    <result column="PROJECT_TITLE" property="projectTitle" jdbcType="VARCHAR" />
+    <result column="BELONG_CUSTOMERID" property="belongCustomerid" jdbcType="VARCHAR" />
+    <result column="BELONG_PRODUCT" property="belongProduct" jdbcType="VARCHAR" />
+    <result column="SCOPE_DESCRIPTION" property="scopeDescription" jdbcType="VARCHAR" />
+    <result column="RISK_ASSESSMENT" property="riskAssessment" jdbcType="VARCHAR" />
+    <result column="REMARK" property="remark" jdbcType="VARCHAR" />
+    <result column="PROJECT_DATE" property="projectDate" jdbcType="VARCHAR" />
+    <result column="CONTRACT_ID" property="contractId" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DEPT" property="createDept" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="IMPLEMENT_HEAD" property="implementHead" jdbcType="VARCHAR" />
+    <result column="EXPLOIT_HEAD" property="exploitHead" jdbcType="VARCHAR" />
+    <result column="PLAN_WORK_HOURS" property="planWorkHours" jdbcType="VARCHAR" />
+    <result column="PROJECT_STATUS" property="projectStatus" jdbcType="VARCHAR" />
+    <result column="PROJECT_FLAG" property="projectFlag" jdbcType="VARCHAR" />
+    <result column="BELONG_CUSTOMER_NAME" property="belongCustomerName" jdbcType="VARCHAR" />
+    <result column="IMPLEMENT_HEAD_NAME" property="implementHeadName" jdbcType="VARCHAR" />
+    <result column="EXPLOIT_HEAD_NAME" property="exploitHeadName" jdbcType="VARCHAR" />
+    <result column="CREATE_BY_NAME" property="createByName" jdbcType="VARCHAR" />
+    <result column="CONTRACT_NO" property="contractNo" jdbcType="VARCHAR" />
+  </resultMap>
+  
+  <!--查询字段 所有的表字段-->
+  <sql id="ProjectCheck_Column_List" >
+    UPDATE_BY,
+    UPDATE_DATE,
+    PROJECT_NAME,
+    ID,
+    PROJECT_NO,
+    PROJECT_STAGE,
+    PROJECT_TITLE,
+    BELONG_CUSTOMERID,  
+    BELONG_PRODUCT,
+    BELONG_CUSTOMER_NAME,
+    IMPLEMENT_HEAD_NAME,
+    EXPLOIT_HEAD_NAME,
+    SCOPE_DESCRIPTION,
+    RISK_ASSESSMENT,
+    REMARK,
+    to_char(PROJECT_DATE,'yyyy-mm-dd') projectDate,
+    CONTRACT_ID,
+    to_char(CREATE_DATE,'yyyy-mm-dd') createDate,   
+    IMPLEMENT_HEAD,   
+    EXPLOIT_HEAD,   
+    PLAN_WORK_HOURS,
+    PROJECT_STATUS,
+    PROJECT_FLAG,
+    CREATE_BY_NAME,
+    CONTRACT_NO
+  </sql>
+  
+  <!-- 根据参数查询项目列表信息 -->
+  <select id="queryProjectCheckInfoByParam" resultMap="ProjectCheckResultMap" parameterType="com.ps.result.projectmanage.ProjectVo" >
+    select    
+       <include refid="ProjectCheck_Column_List" />
+    from(
+       select 
+            t1.PROJECT_NAME,
+		    t1.ID,
+		    t1.PROJECT_NO,
+		    t1.PROJECT_STAGE,
+		    t1.PROJECT_TITLE,
+		    t1.BELONG_CUSTOMERID,  
+		    t1.BELONG_PRODUCT,
+		    t1.SCOPE_DESCRIPTION,
+		    t1.RISK_ASSESSMENT,
+		    t1.REMARK,
+		    t1.PROJECT_DATE,
+		    t1.CONTRACT_ID,
+		    t1.CREATE_BY,
+		    t1.CREATE_DATE,   
+		    t1.IMPLEMENT_HEAD,   
+		    t1.EXPLOIT_HEAD,   
+		    t1.PLAN_WORK_HOURS,
+		    t1.PROJECT_STATUS,
+		    t1.PROJECT_FLAG,
+		    t2.dept_id CREATE_DEPT,
+		    t2.user_name CREATE_BY_NAME,
+		    t1.UPDATE_BY,
+		    t1.UPDATE_DATE,
+			t3.custom_short_name BELONG_CUSTOMER_NAME,
+			t4.user_name IMPLEMENT_HEAD_NAME,
+			t5.user_name EXPLOIT_HEAD_NAME,
+			t6.CONTRACT_NO CONTRACT_NO  
+        from  PMS_PROJECT t1    
+        LEFT JOIN pms_user t2 ON t1.create_by = t2.id
+		LEFT JOIN pms_customer t3 ON t1.belong_customerid=t3.id
+		LEFT JOIN pms_user t4 ON t1.implement_head=t4.id
+		LEFT JOIN pms_user t5 ON t1.exploit_head=t5.id
+		LEFT JOIN pms_contract t6 ON t1.contract_id=t6.id
+    ) a 
+    where a.PROJECT_FLAG=0 and a.PROJECT_STATUS IN (1,2)   
+    <if test="projectName !=null and projectName !=''">
+        and a.PROJECT_TITLE like '%'||#{projectName}|| '%'
+    </if>
+    <if test="projectNo !=null and projectNo !=''">
+        and a.PROJECT_NO like '%'||#{projectNo}|| '%'
+    </if>
+    <if test="belongCustomerid !=null and belongCustomerid !=''">
+        and a.BELONG_CUSTOMERID  in (${belongCustomerid})
+    </if>
+    <if test="belongProduct !=null and belongProduct !=''">
+        and a.BELONG_PRODUCT in (${belongProduct})
+    </if>
+    <if test="projectStatus !=null and projectStatus !=''">
+        and a.PROJECT_STATUS in (${projectStatus})
+    </if>
+    <if test="projectBeginDate !=null and projectBeginDate !=''">
+       AND a.PROJECT_DATE>=to_date(#{projectBeginDate},'yyyy/mm/dd hh24:mi:ss') 
+    </if>
+    <if test="projectEndDate !=null and projectEndDate !=''">
+        AND to_date(#{projectEndDate},'yyyy/mm/dd hh24:mi:ss') >=a.PROJECT_DATE
+    </if>
+    <if test="projectStage !=null and projectStage !=''">
+        and  a.PROJECT_STAGE in (${projectStage} )
+    </if>    
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by a.Create_date DESC
+		</otherwise>
+	 </choose>
+  </select>
+  
+  <!-- 根据ID查询项目信息 -->
+  <select id="queryProjectCheckById" resultMap="ProjectCheckResultMap" parameterType="java.lang.String" >
+    select
+    (SELECT contract_no  FROM  PMS_CONTRACT  b WHERE b.ID=a.CONTRACT_ID) contractNo,
+    (SELECT code_zh from PMS_CODE t WHERE code_type='projectStage' AND  t.code_value=a.PROJECT_STAGE) projectStageName,
+    (SELECT code_zh from PMS_CODE t WHERE code_type='PRODUCT' AND  t.code_value=a.BELONG_PRODUCT) belongProductName,
+    (SELECT dept_name  FROM PMS_Dept WHERE ID=a.create_dept) createDeptName,       
+    <include refid="ProjectCheck_Column_List" />
+     from(
+       select 
+            t1.PROJECT_NAME,
+		    t1.ID,
+		    t1.PROJECT_NO,
+		    t1.PROJECT_STAGE,
+		    t1.PROJECT_TITLE,
+		    t1.BELONG_CUSTOMERID,  
+		    t1.BELONG_PRODUCT,
+		    t1.SCOPE_DESCRIPTION,
+		    t1.RISK_ASSESSMENT,
+		    t1.REMARK,
+		    t1.PROJECT_DATE,
+		    t1.CONTRACT_ID,
+		    t1.CREATE_BY,
+		    t1.CREATE_DATE,   
+		    t1.IMPLEMENT_HEAD,   
+		    t1.EXPLOIT_HEAD,   
+		    t1.PLAN_WORK_HOURS,
+		    t1.PROJECT_STATUS,
+		    t1.PROJECT_FLAG,
+		    t2.dept_id CREATE_DEPT,
+		    t2.user_name CREATE_BY_NAME,
+		    t1.UPDATE_BY,
+		    t1.UPDATE_DATE,
+			t3.custom_short_name BELONG_CUSTOMER_NAME,
+			t4.user_name IMPLEMENT_HEAD_NAME,
+			t5.user_name EXPLOIT_HEAD_NAME,
+			t6.contract_no CONTRACT_NO    
+        from  PMS_PROJECT t1    
+        LEFT JOIN pms_user t2 ON t1.create_by = t2.id
+		LEFT JOIN pms_customer t3 ON t1.belong_customerid=t3.id
+		LEFT JOIN pms_user t4 ON t1.implement_head=t4.id
+		LEFT JOIN pms_user t5 ON t1.exploit_head=t5.id
+		LEFT JOIN pms_contract t6 ON t1.contract_id=t6.id
+    ) a 
+    where a.ID =  #{id,jdbcType=DECIMAL }
+  </select>
+    
+  <!-- 项目立项审批-->
+  <update id="updateProjectStatus" parameterType="com.ps.result.projectmanage.ProjectVo" >
+    update PMS_PROJECT
+    <set >		    			
+    		PROJECT_STATUS =#{projectStatus,jdbcType=VARCHAR },
+
+    		UPDATE_BY =  #{updateBy,jdbcType=VARCHAR },
+
+    		UPDATE_DATE =  sysdate
+    </set>
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+</mapper>

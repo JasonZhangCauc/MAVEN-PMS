@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.common.ResourceDao" >
+	<!-- 获取所有的资源 -->
+  	<select id="getAllResource" resultType="com.ps.result.systemmanage.ResourceVo" >
+	  	SELECT 
+	  	   T.ID id,
+	       T.RESOURCE_URL resourceUrl,
+	       T.RESOURCE_TYPE resourceType,
+	       T.RESOURCE_DESCCH resourceDescch,
+	       T.RESOURCE_DESCEN resourceDescen,
+	       T.RESOURCE_ICON resourceIcon,
+	       T.RESOURCE_PID pId,
+	       T1.ROLE_ID roleId 
+		   FROM PMS_RESOURCE     T,
+		        PMS_ROLERESOURCE T1,
+		        PMS_ROLE         T2
+		   WHERE 1=1
+		   AND T.ID = T1.RESOURCE_ID
+		   AND T1.ROLE_ID = T2.ID
+		   AND T.RESOURCE_ISSHOW='0'
+  	</select>
+</mapper>

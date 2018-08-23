@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.systemmanage.ResourceManagerDao" >
+  <resultMap id="ResourceResultMap" type="com.ps.result.systemmanage.ResourceVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="RESOURCE_CODE" property="resourceCode" jdbcType="VARCHAR" />
+    <result column="RESOURCE_URL" property="resourceUrl" jdbcType="VARCHAR" />
+    <result column="RESOURCE_TYPE" property="resourceType" jdbcType="VARCHAR" />
+    <result column="RESOURCE_DESCCH" property="resourceDescch" jdbcType="VARCHAR" />
+    <result column="RESOURCE_DESCEN" property="resourceDescen" jdbcType="VARCHAR" />
+    <result column="RESOURCE_PID" property="pId" jdbcType="VARCHAR" />
+    <result column="RESOURCE_ORDER" property="resourceOrder" jdbcType="VARCHAR" />
+    <result column="RESOURCE_ISSHOW" property="resourceIsshow" jdbcType="VARCHAR" />
+    <result column="RESOURCE_ICON" property="resourceIcon" jdbcType="VARCHAR" />
+  </resultMap>
+  
+  <!--查询字段 所有的表字段-->
+  <sql id="Resource_Column_List" >
+    ID,
+    RESOURCE_CODE,
+    RESOURCE_URL,
+    RESOURCE_TYPE,
+    RESOURCE_DESCCH,
+    RESOURCE_DESCEN,
+    RESOURCE_PID,
+    RESOURCE_ORDER,
+    RESOURCE_ISSHOW,
+    RESOURCE_ICON
+  </sql>
+  
+  <!-- 加载资源树 -->
+  <select id="loadResourceTree"  resultMap="ResourceResultMap">
+  	SELECT 
+  	<include refid="Resource_Column_List" />
+    FROM PMS_RESOURCE
+	WHERE 1=1
+	AND RESOURCE_TYPE in (0,1)
+	and RESOURCE_ISSHOW='0'
+	ORDER BY RESOURCE_ORDER ASC
+  </select>
+  
+  <!-- 资源移动 -->
+  <update id="updateResourcePid">
+  	UPDATE pms_resource SET resource_pid=#{targetId,jdbcType=VARCHAR } WHERE ID=#{resourceId,jdbcType=VARCHAR }
+  </update>
+  
+  <!-- 启用/禁用资源 -->
+  <update id="updateResourceFlag">
+  	update pms_resource set resource_isshow =#{resourceFlag,jdbcType=VARCHAR } where ID=#{resourceId,jdbcType=VARCHAR }
+  </update>
+  
+  <!-- 根据资源id查询资源信息 -->
+  <select id="queryResourceById" resultMap="ResourceResultMap">
+  	select 
+    <include refid="Resource_Column_List" />
+    from PMS_RESOURCE
+    where ID =  #{id,jdbcType=DECIMAL }
+  </select>
+  
+  <!-- 新增资源信息 -->
+  <insert id="insertResource" parameterType="com.ps.result.systemmanage.ResourceVo" >
+    insert into PMS_RESOURCE
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+	    ID,
+	    RESOURCE_CODE,
+	    RESOURCE_URL,
+	    RESOURCE_TYPE,
+	    RESOURCE_DESCCH,
+	    RESOURCE_DESCEN,
+	    RESOURCE_PID,
+	    RESOURCE_ORDER,
+	    RESOURCE_ISSHOW,
+	    RESOURCE_ICON,
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       pms_resource_tb_seq.nextval,
+       #{resourceCode,jdbcType=VARCHAR },
+       #{resourceUrl,jdbcType=VARCHAR },
+       #{resourceType,jdbcType=VARCHAR },
+       #{resourceDescch,jdbcType=VARCHAR },
+       #{resourceDescen,jdbcType=VARCHAR },
+       #{pId,jdbcType=VARCHAR },
+       #{resourceOrder,jdbcType=VARCHAR },
+       0,
+       #{resourceIcon,jdbcType=VARCHAR }
+    </trim>
+  </insert>
+  
+  <!-- 修改资源信息 -->
+  <update id="updateResource" parameterType="com.ps.result.systemmanage.ResourceVo" >
+    update PMS_RESOURCE
+    set
+    	RESOURCE_CODE =  #{resourceCode,jdbcType=VARCHAR },
+   		RESOURCE_URL =  #{resourceUrl,jdbcType=VARCHAR },
+   		RESOURCE_DESCCH =  #{resourceDescch,jdbcType=VARCHAR },
+   		RESOURCE_DESCEN =  #{resourceDescen,jdbcType=VARCHAR },
+   		RESOURCE_ORDER =  #{resourceOrder,jdbcType=VARCHAR },
+   		RESOURCE_ICON =  #{resourceIcon,jdbcType=VARCHAR }
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  
+</mapper>

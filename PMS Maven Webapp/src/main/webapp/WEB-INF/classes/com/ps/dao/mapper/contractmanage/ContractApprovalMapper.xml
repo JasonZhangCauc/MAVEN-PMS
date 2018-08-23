@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.contractmanage.ContractApprovalDao" >
+  <!-- 合同审批映射表 -->
+  <resultMap id="ApprovalResultMap" type="com.ps.result.contractmanage.ContractApprovalVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="CREATE_DEPT" property="createDept" jdbcType="VARCHAR" />
+    <result column="LABOR_PRICE" property="laborPrice" jdbcType="VARCHAR" />
+    <result column="FREESERVICE_PERIOD" property="freeservicePeriod" jdbcType="VARCHAR" />
+    <result column="COSTSERVICE_TIME" property="costserviceTime" jdbcType="VARCHAR" />
+    <result column="UPDATE_DATE" property="updateDate" jdbcType="VARCHAR" />
+    <result column="UPDATE_BY" property="updateBy" jdbcType="VARCHAR" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="CONTRACT_NO" property="contractNo" jdbcType="VARCHAR" />
+    <result column="SIGNED_DATE" property="signedDate" jdbcType="VARCHAR" />
+    <result column="BELONG_CUSTOMERID" property="belongCustomerid" jdbcType="VARCHAR" />
+    <result column="BELONG_PRODUCT" property="belongProduct" jdbcType="VARCHAR" />
+    <result column="CONTRACT_TITLE" property="contractTitle" jdbcType="VARCHAR" />
+    <result column="CONTRACT_AMOUNT" property="contractAmount" jdbcType="VARCHAR" />
+    <result column="CURRENCY" property="currency" jdbcType="VARCHAR" />
+    <result column="EFFECTIVE_DATE" property="effectiveDate" jdbcType="VARCHAR" />
+    <result column="FREE_LIMIT" property="freeLimit" jdbcType="VARCHAR" />
+    <result column="GIVE_DAY" property="giveDay" jdbcType="VARCHAR" />
+    <result column="PAYMENT_REMARK" property="paymentRemark" jdbcType="VARCHAR" />
+    <result column="REMARK" property="remark" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="CONTRACT_STATUS" property="contractStatus" jdbcType="VARCHAR" />
+    <result column="STATUS" property="status" jdbcType="VARCHAR" />
+    <result column="EXAMINE_BY" property="examineBy" jdbcType="VARCHAR" />
+    <result column="EXAMINE_DATE" property="examineDate" jdbcType="VARCHAR" />
+    <result column="CUSTOM_NAME" property="customName" jdbcType="VARCHAR" />
+     <result column="CREATE_BY_NAME" property="createByName" jdbcType="VARCHAR" />
+  </resultMap>
+  <!--查询合同 所有的表字段-->
+  <sql id="Approval_Column_List" >
+    CREATE_DEPT,
+    LABOR_PRICE,
+    FREESERVICE_PERIOD,
+    COSTSERVICE_TIME,
+    ID,
+    CONTRACT_NO,
+    to_char(SIGNED_DATE,'yyyy-mm-dd') signedDate,
+    BELONG_CUSTOMERID belongCustomerid,
+   (SELECT custom_short_Name FROM PMS_CUSTOMER WHERE ID = BELONG_CUSTOMERID) CUSTOM_NAME,
+    BELONG_PRODUCT,
+    CONTRACT_TITLE,
+    CONTRACT_AMOUNT,
+    CURRENCY,
+    to_char(EFFECTIVE_DATE,'yyyy-mm-dd') effectiveDate,
+    FREE_LIMIT,
+    GIVE_DAY,
+    PAYMENT_REMARK,
+    REMARK,
+    to_char(CREATE_DATE,'yyyy-mm-dd hh24:mi') createDate,
+    CONTRACT_STATUS,
+    EXAMINE_BY,
+    to_char(EXAMINE_DATE,'yyyy-mm-dd hh24:mi') examineDate,
+    (SELECT user_name FROM  PMS_USER WHERE ID=a.CREATE_BY) CREATE_BY_NAME
+  </sql>
+  
+  <!-- 根据参数查询合同信息 -->
+  <select id="queryContractAppInfoByParam" resultMap="ApprovalResultMap" parameterType="com.ps.result.contractmanage.ContractApprovalVo" >
+    select
+    <include refid="Approval_Column_List" />
+    from PMS_CONTRACT a
+    where a.CONTRACT_STATUS in(1,2,3)
+    <if test="contractTitle !=null and contractTitle !=''">
+        and CONTRACT_TITLE like '%'||#{contractTitle}|| '%'
+    </if>
+    <if test="contractNo !=null and contractNo !=''">
+        and CONTRACT_NO like '%'||#{contractNo}|| '%'
+    </if>
+    <if test="belongCustomerid !=null and belongCustomerid !=''">
+        and BELONG_CUSTOMERID in (${belongCustomerid})
+    </if>
+    <if test="belongProduct !=null and belongProduct !=''">
+        and BELONG_PRODUCT in (${belongProduct})
+    </if>
+    <if test="contractStatus !=null and contractStatus !=''">
+        and CONTRACT_STATUS in (${contractStatus})
+    </if>
+    <if test="signStartDate !=null and signStartDate !=''">
+       AND SIGNED_DATE>=to_date(#{signStartDate},'yyyy/mm/dd hh24:mi:ss') 
+    </if>
+    <if test="signEndDate !=null and signEndDate !=''">
+        AND to_date(#{signEndDate},'yyyy/mm/dd hh24:mi:ss') >=SIGNED_DATE
+    </if>
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by Create_date DESC
+		</otherwise>
+	 </choose>
+  </select>
+   <!-- 根据ID查询合同信息 -->
+  <select id="queryContractAppById" resultMap="ApprovalResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Approval_Column_List" />
+    from PMS_CONTRACT a
+    where a.ID =  #{id,jdbcType=DECIMAL }
+  </select>
+  <!-- 合同审批-->
+  <update id="updateContractStatus" parameterType="com.ps.result.contractmanage.ContractApprovalVo" >
+    update PMS_CONTRACT
+    <set >		    			
+    		CONTRACT_STATUS =#{contractStatus,jdbcType=VARCHAR },
+
+    		EXAMINE_BY =  #{examineBy,jdbcType=VARCHAR },
+
+    		EXAMINE_DATE =  sysdate
+    </set>
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+</mapper>

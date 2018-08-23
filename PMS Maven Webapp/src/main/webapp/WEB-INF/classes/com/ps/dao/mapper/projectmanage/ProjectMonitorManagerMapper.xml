@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.projectmanage.ProjectMonitorManagerDao" >
+	<!-- 项目映射实体类 -->
+  <resultMap id="ProjectResultMap" type="com.ps.result.projectmanage.ProjectVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="UPDATE_BY" property="updateBy" jdbcType="VARCHAR" />
+    <result column="UPDATE_DATE" property="updateDate" jdbcType="VARCHAR" />
+    <result column="PROJECT_NAME" property="projectName" jdbcType="VARCHAR" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="PROJECT_NO" property="projectNo" jdbcType="VARCHAR" />
+    <result column="PROJECT_STAGE" property="projectStage" jdbcType="VARCHAR" />
+    <result column="PROJECT_TITLE" property="projectTitle" jdbcType="VARCHAR" />
+    <result column="BELONG_CUSTOMERID" property="belongCustomerid" jdbcType="VARCHAR" />
+    <result column="BELONG_PRODUCT" property="belongProduct" jdbcType="VARCHAR" />
+    <result column="SCOPE_DESCRIPTION" property="scopeDescription" jdbcType="VARCHAR" />
+    <result column="RISK_ASSESSMENT" property="riskAssessment" jdbcType="VARCHAR" />
+    <result column="REMARK" property="remark" jdbcType="VARCHAR" />
+    <result column="PROJECT_DATE" property="projectDate" jdbcType="VARCHAR" />
+    <result column="CONTRACT_ID" property="contractId" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DEPT" property="createDept" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="IMPLEMENT_HEAD" property="implementHead" jdbcType="VARCHAR" />
+    <result column="EXPLOIT_HEAD" property="exploitHead" jdbcType="VARCHAR" />
+    <result column="PLAN_WORK_HOURS" property="planWorkHours" jdbcType="VARCHAR" />
+    <result column="PROJECT_STATUS" property="projectStatus" jdbcType="VARCHAR" />
+    <result column="PROJECT_FLAG" property="projectFlag" jdbcType="VARCHAR" />
+    <result column="CREATE_DEPT" property="createDept" jdbcType="VARCHAR" />
+    <result column="BELONG_CUSTOMER_NAME" property="belongCustomerName" jdbcType="VARCHAR" />
+    <result column="IMPLEMENT_HEAD_NAME" property="implementHeadName" jdbcType="VARCHAR" />
+    <result column="EXPLOIT_HEAD_NAME" property="exploitHeadName" jdbcType="VARCHAR" />
+    <result column="CREATE_BY_NAME" property="createByName" jdbcType="VARCHAR" />
+    <result column="CONTRACT_NO" property="contractNo" jdbcType="VARCHAR" />
+  </resultMap>
+  
+  <!-- 里程碑调整实体类 -->
+  <resultMap id="MilepostAdjustResultMap" type="com.ps.result.projectmanage.MilepostAdjustVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="MILEPOST_ID" property="milepostId" jdbcType="VARCHAR" />
+    <result column="ADJUST_DATE" property="adjustDate" jdbcType="VARCHAR" />
+    <result column="ADJUST_REMARK" property="adjustRemark" jdbcType="VARCHAR" />
+    <result column="IS_COMPLETE" property="isComplete" jdbcType="VARCHAR" />
+    <result column="APPROVAL_BY" property="approvalBy" jdbcType="VARCHAR" />
+    <result column="APPROVAL_DATE" property="approvalDate" jdbcType="VARCHAR" />
+    <result column="REMARK" property="remark" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="UPDATE_BY" property="updateBy" jdbcType="VARCHAR" />
+    <result column="UPDATE_DATE" property="updateDate" jdbcType="VARCHAR" />
+    <result column="CREATE_BY_NAME" property="createByName" jdbcType="VARCHAR" />
+    <result column="APPROVAL_BY_NAME" property="approvalByName" jdbcType="VARCHAR" />
+  </resultMap>
+  
+  <!--查询字段 所有的表字段-->
+  <sql id="Project_Column_List" >
+    UPDATE_BY,
+    to_char(UPDATE_DATE,'yyyy-mm-dd') UPDATE_DATE,
+    PROJECT_NAME,
+    ID,
+    PROJECT_NO,
+    PROJECT_STAGE,
+    PROJECT_TITLE,
+    BELONG_CUSTOMERID,  
+    BELONG_PRODUCT,
+    SCOPE_DESCRIPTION,
+    RISK_ASSESSMENT,
+    REMARK,
+    to_char(PROJECT_DATE,'yyyy-mm-dd') projectDate,
+    CONTRACT_ID,
+    CREATE_BY,
+    to_char(CREATE_DATE,'yyyy-mm-dd') createDate,   
+    IMPLEMENT_HEAD,   
+    EXPLOIT_HEAD,   
+    PLAN_WORK_HOURS,
+    PROJECT_STATUS,
+    PROJECT_FLAG,
+    CREATE_DEPT,
+    BELONG_CUSTOMER_NAME,
+    IMPLEMENT_HEAD_NAME,
+    EXPLOIT_HEAD_NAME,
+    CREATE_BY_NAME,
+    CONTRACT_NO
+  </sql>
+  
+  <!--里程碑调整查询字段-->
+  <sql id="MeilpostAdjust_Column_List" >
+    ID,
+    MILEPOST_ID,
+    to_char(ADJUST_DATE,'yyyy-mm-dd') ADJUST_DATE,
+    ADJUST_REMARK,
+    IS_COMPLETE,
+    APPROVAL_BY,
+    to_char(APPROVAL_DATE,'yyyy-mm-dd') APPROVAL_DATE,
+    REMARK,
+    CREATE_BY,
+    to_char(CREATE_DATE,'yyyy-mm-dd') CREATE_DATE,
+    UPDATE_BY,
+    to_char(UPDATE_DATE,'yyyy-mm-dd') UPDATE_DATE,
+    CREATE_BY_NAME,
+    APPROVAL_BY_NAME
+  </sql>
+  
+  <!-- 根据参数查询项目监控列表信息 -->
+  <select id="queryProjectMonitorByParam" resultMap="ProjectResultMap" parameterType="com.ps.result.projectmanage.ProjectVo" >
+  	select   
+    <include refid="Project_Column_List" />
+    from (
+    	SELECT  
+		    t1.PROJECT_NAME,
+		    t1.ID,
+		    t1.PROJECT_NO,
+		    t1.PROJECT_STAGE,
+		    t1.PROJECT_TITLE,
+		    t1.BELONG_CUSTOMERID,  
+		    t1.BELONG_PRODUCT,
+		    t1.SCOPE_DESCRIPTION,
+		    t1.RISK_ASSESSMENT,
+		    t1.REMARK,
+		    t1.PROJECT_DATE,
+		    t1.CONTRACT_ID,
+		    t1.CREATE_BY,
+		    t1.CREATE_DATE,   
+		    t1.IMPLEMENT_HEAD,   
+		    t1.EXPLOIT_HEAD,   
+		    t1.PLAN_WORK_HOURS,
+		    t1.PROJECT_STATUS,
+		    t1.PROJECT_FLAG,
+		    t2.dept_id CREATE_DEPT,
+		    t2.user_name CREATE_BY_NAME,
+		    t1.UPDATE_BY,
+		    t1.UPDATE_DATE,
+			t3.custom_name BELONG_CUSTOMER_NAME,
+			t4.user_name IMPLEMENT_HEAD_NAME,
+			t5.user_name EXPLOIT_HEAD_NAME,
+			t6.contract_no CONTRACT_NO
+		FROM pms_project t1
+		LEFT JOIN pms_user t2 ON t1.create_by = t2.id
+		LEFT JOIN pms_customer t3 ON t1.belong_customerid=t3.id
+		LEFT JOIN pms_user t4 ON t1.implement_head=t4.id
+		LEFT JOIN pms_user t5 ON t1.exploit_head=t5.id
+		LEFT JOIN pms_contract t6 ON t1.contract_id=t6.id
+    )f1
+    where f1.PROJECT_FLAG=0
+    and f1.PROJECT_STATUS = '2'
+    <if test="projectTitle !=null and projectTitle !=''">
+        and f1.PROJECT_TITLE like '%'||#{projectTitle}|| '%'
+    </if>
+    <if test="projectNo !=null and projectNo !=''">
+        and f1.PROJECT_NO like '%'||#{projectNo}|| '%'
+    </if>
+    <if test="belongCustomerid !=null and belongCustomerid !=''">
+        and f1.BELONG_CUSTOMERID =#{belongCustomerid}
+    </if>
+    <if test="belongProduct !=null and belongProduct !=''">
+        and f1.BELONG_PRODUCT= #{belongProduct}
+    </if>
+    <if test="projectBeginDate !=null and projectBeginDate !=''">
+       AND f1.PROJECT_DATE>=to_date(#{projectBeginDate},'yyyy/mm/dd hh24:mi:ss') 
+    </if>
+    <if test="projectEndDate !=null and projectEndDate !=''">
+        AND to_date(#{projectEndDate},'yyyy/mm/dd hh24:mi:ss') >=f1.PROJECT_DATE
+    </if>
+    <if test="projectStage !=null and projectStage !=''">
+        and f1.PROJECT_STAGE in (${projectStage})
+    </if>    
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by f1.Create_date DESC
+		</otherwise>
+	</choose>
+  </select>
+  
+  <!-- 根据里程碑查询里程碑调整列表信息 -->
+  <select id="queryMilepostAdjustByParam" resultMap="MilepostAdjustResultMap" parameterType="com.ps.result.projectmanage.MilepostAdjustVo" >
+  	select   
+    <include refid="MeilpostAdjust_Column_List" />
+    from (
+    	SELECT 
+		    t1.ID,
+		    t1.MILEPOST_ID,
+		    t1.ADJUST_DATE,
+		    t1.ADJUST_REMARK,
+		    t1.IS_COMPLETE,
+		    t1.APPROVAL_BY,
+		    t1.APPROVAL_DATE,
+		    t1.REMARK,
+		    t1.CREATE_BY,
+		    t1.CREATE_DATE,
+		    t1.UPDATE_BY,
+		    t1.UPDATE_DATE,
+			t2.user_name CREATE_BY_NAME,
+			t3.user_name APPROVAL_BY_NAME
+		FROM PMS_MILEPOST_ADJUST t1
+		LEFT JOIN pms_user t2 ON t1.create_by = t2.id
+		LEFT JOIN pms_user t3 ON t1.approval_by = t3.id
+    )f1
+    where f1.MILEPOST_ID=#{milepostId,jdbcType=VARCHAR}
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by f1.Create_date DESC
+		</otherwise>
+	</choose>
+  </select>
+  
+  <!-- 根据ID查询里程碑调整列表信息 -->
+  <select id="queryMilepostAdjustById" resultMap="MilepostAdjustResultMap" >
+  	select   
+    <include refid="MeilpostAdjust_Column_List" />
+    from (
+    	SELECT 
+		    t1.ID,
+		    t1.MILEPOST_ID,
+		    t1.ADJUST_DATE,
+		    t1.ADJUST_REMARK,
+		    t1.IS_COMPLETE,
+		    t1.APPROVAL_BY,
+		    t1.APPROVAL_DATE,
+		    t1.REMARK,
+		    t1.CREATE_BY,
+		    t1.CREATE_DATE,
+		    t1.UPDATE_BY,
+		    t1.UPDATE_DATE,
+			t2.user_name CREATE_BY_NAME,
+			t3.user_name APPROVAL_BY_NAME
+		FROM PMS_MILEPOST_ADJUST t1
+		LEFT JOIN pms_user t2 ON t1.create_by = t2.id
+		LEFT JOIN pms_user t3 ON t1.approval_by = t3.id
+    )f1
+    where f1.ID=#{id,jdbcType=DECIMAL}
+  </select>
+  
+  <!-- 新增里程碑调整信息 -->
+  <insert id="insertMilepostAdjust" parameterType="com.ps.result.projectmanage.MilepostAdjustVo">
+  	insert into PMS_MILEPOST_ADJUST
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+	    ID,
+	    MILEPOST_ID,
+	    ADJUST_DATE,
+	    ADJUST_REMARK,
+	    IS_COMPLETE,
+	    APPROVAL_BY,
+	    APPROVAL_DATE,
+	    REMARK,
+	    CREATE_BY,
+	    CREATE_DATE,
+	    UPDATE_BY,
+	    UPDATE_DATE,
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       pms_milepost_adjust_tb_seq.nextval,
+       #{milepostId,jdbcType=VARCHAR },
+       to_date(#{adjustDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+       #{adjustRemark,jdbcType=VARCHAR },
+       #{isComplete,jdbcType=VARCHAR },
+       #{approvalBy,jdbcType=VARCHAR },
+       to_date(#{approvalDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+       #{remark,jdbcType=VARCHAR },
+       #{createBy,jdbcType=VARCHAR },
+       sysdate,
+       #{updateBy,jdbcType=VARCHAR },
+       sysdate,
+    </trim>
+  </insert>
+  
+  <!-- 修改里程碑调整信息 -->
+  <update id="updateMilepostAdjust" parameterType="com.ps.result.projectmanage.MilepostAdjustVo">
+  	update PMS_MILEPOST_ADJUST
+    <set >
+   		ADJUST_DATE =  to_date(#{adjustDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+   		ADJUST_REMARK =  #{adjustRemark,jdbcType=VARCHAR },
+   		IS_COMPLETE =  #{isComplete,jdbcType=VARCHAR },
+   		APPROVAL_BY =  #{approvalBy,jdbcType=VARCHAR },
+   		APPROVAL_DATE =  to_date(#{approvalDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+   		REMARK =  #{remark,jdbcType=VARCHAR },
+   		UPDATE_BY =  #{updateBy,jdbcType=VARCHAR },
+   		UPDATE_DATE =  sysdate
+    </set>
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+</mapper>

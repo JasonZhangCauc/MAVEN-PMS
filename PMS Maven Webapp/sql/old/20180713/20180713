@@ -1,0 +1,97 @@
+-------------start 018470 新增注释表建表语句和sequence,triger 20180713-------------------
+
+
+CREATE SEQUENCE PMS_COMMENT_ID_AUTO_INCR
+INCREMENT BY 1
+START WITH 1
+ NOMAXVALUE;
+
+
+/*==============================================================*/
+/* Table: PMS_COMMENT                                           */
+/*==============================================================*/
+CREATE TABLE PMS_COMMENT  (
+   ID                   NUMBER                          NOT NULL,
+   USER_ID              NUMBER,
+   COMMENT_TIME         DATE,
+   DATA_ID              VARCHAR2(100),
+   COMMENT_CONTENT      VARCHAR2(1000),
+   FUNCTION_NO          VARCHAR2(100),
+   CREATE_TIME          TIMESTAMP                      DEFAULT SYSDATE,
+   CONSTRAINT PK_PMS_COMMENT PRIMARY KEY (ID)
+)
+/
+
+COMMENT ON TABLE PMS_COMMENT IS
+'注释表'
+/
+
+COMMENT ON COLUMN PMS_COMMENT.USER_ID IS
+'添加注释的用户id'
+/
+
+COMMENT ON COLUMN PMS_COMMENT.COMMENT_TIME IS
+'增加注释时间'
+/
+
+COMMENT ON COLUMN PMS_COMMENT.COMMENT_CONTENT IS
+'comment_content'
+/
+
+COMMENT ON COLUMN PMS_COMMENT.FUNCTION_NO IS
+'功能编号'
+/
+
+
+CREATE TRIGGER TIB_PMS_COMMENT BEFORE INSERT
+ON PMS_COMMENT FOR EACH ROW
+DECLARE
+    INTEGRITY_ERROR  EXCEPTION;
+    ERRNO            INTEGER;
+    ERRMSG           CHAR(200);
+    DUMMY            INTEGER;
+    FOUND            BOOLEAN;
+
+BEGIN
+    --  COLUMN "ID" USES SEQUENCE PMS_COMMENT_ID_AUTO_INCR
+    SELECT PMS_COMMENT_ID_AUTO_INCR.NEXTVAL INTO :NEW.ID FROM DUAL;
+
+--  ERRORS HANDLING
+EXCEPTION
+    WHEN INTEGRITY_ERROR THEN
+       RAISE_APPLICATION_ERROR(ERRNO, ERRMSG);
+END;
+/
+
+/*==============================================================*/
+/* Index: I_FNO_DID_PMS_COMMENT                                 */
+/*==============================================================*/
+CREATE INDEX I_FNO_DID_PMS_COMMENT ON PMS_COMMENT (
+   DATA_ID ASC,
+   FUNCTION_NO ASC
+)
+/
+-------------end 018470 新增注释表建表语句和sequence,triger 20180713-------------------
+
+-------------start wb066 新增项目表序列 20180713-------------------
+create sequence PMS_PROJECT_BASEINFO_TB_SEQ
+minvalue 1
+maxvalue 999999999999999999
+start with 1
+increment by 1
+cache 20
+order;
+
+ insert into pms_code (ID, CODE_ZH, CODE_EN, CODE_VALUE, CODE_TYPE, CODE_FLAG, CODE_REMARK, CREATE_BY, CREATE_DATE, UPDATE_BY, UPDATE_DATE)
+values (pms_code_tb_seq.nextval, '已提交', 'send', '1', 'workHoursStatus', '0', '工时登记审核状态', 1, to_date('04-07-2018 15:45:33', 'dd-mm-yyyy hh24:mi:ss'), 113, to_date('04-07-2018 15:50:02', 'dd-mm-yyyy hh24:mi:ss'));
+
+insert into pms_code (ID, CODE_ZH, CODE_EN, CODE_VALUE, CODE_TYPE, CODE_FLAG, CODE_REMARK, CREATE_BY, CREATE_DATE, UPDATE_BY, UPDATE_DATE)
+values (pms_code_tb_seq.nextval, '编辑中', 'edit', '0', 'workHoursStatus', '0', '工时登记审核状态', 1, to_date('04-07-2018 15:45:36', 'dd-mm-yyyy hh24:mi:ss'), 113, to_date('04-07-2018 15:49:51', 'dd-mm-yyyy hh24:mi:ss'));
+
+insert into pms_code (ID, CODE_ZH, CODE_EN, CODE_VALUE, CODE_TYPE, CODE_FLAG, CODE_REMARK, CREATE_BY, CREATE_DATE, UPDATE_BY, UPDATE_DATE)
+values (pms_code_tb_seq.nextval, '已审核', 'checked', '2', 'workHoursStatus', '0', '工时登记审核状态', 1, to_date('04-07-2018 15:47:28', 'dd-mm-yyyy hh24:mi:ss'), 113, to_date('04-07-2018 15:47:28', 'dd-mm-yyyy hh24:mi:ss'));
+
+insert into pms_code (ID, CODE_ZH, CODE_EN, CODE_VALUE, CODE_TYPE, CODE_FLAG, CODE_REMARK, CREATE_BY, CREATE_DATE, UPDATE_BY, UPDATE_DATE)
+values (pms_code_tb_seq.nextval, '已拒绝', 'back', '3', 'workHoursStatus', '0', '工时登记审核状态', 1, to_date('04-07-2018 15:47:31', 'dd-mm-yyyy hh24:mi:ss'), 113, to_date('04-07-2018 15:49:10', 'dd-mm-yyyy hh24:mi:ss'));
+ 
+-------------end wb066 新增项目表序列 20180713-------------------

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.systemmanage.LogerManagerDao">
+  <!-- 操作日志表实体映射类 -->
+  <resultMap id="OperateLogResultMap" type="com.ps.result.systemmanage.OperateLogVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="OPERATE_BY" property="operateBy" jdbcType="VARCHAR" />
+    <result column="OPERATE_NAME" property="operateName" jdbcType="VARCHAR" />
+    <result column="OPERATE_DEPT_NAME" property="operateDeptName" jdbcType="VARCHAR" />
+    <result column="OPERATE_TIME" property="operateTime" jdbcType="VARCHAR" />
+    <result column="OPERATE_TYPE" property="operateType" jdbcType="VARCHAR" />
+    <result column="OPERATE_CATEGORY" property="operateCategory" jdbcType="VARCHAR" />
+    <result column="OPERATE_CONTENT" property="operateContent" jdbcType="VARCHAR" />
+    <result column="OPERATE_CATEGORY_TYPE" property="operateCategoryType" jdbcType="VARCHAR" />
+  </resultMap>
+  
+  <!-- 系统日志表实体映射类 -->
+  <resultMap id="SystemLogResultMap" type="com.ps.result.systemmanage.SystemLogerVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="OPERATE_DEPT_NAME" property="operateDeptName" jdbcType="VARCHAR" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="OPERATE_BY" property="operateBy" jdbcType="VARCHAR" />
+    <result column="OPERATE_NAME" property="operateName" jdbcType="VARCHAR" />
+    <result column="FUNCTION_MODULE" property="functionModule" jdbcType="VARCHAR" />
+    <result column="FUNCTION_MODULE_NAME" property="functionModuleName" jdbcType="VARCHAR" />
+    <result column="OPERATE_CLASS" property="operateClass" jdbcType="VARCHAR" />
+    <result column="OPERATE_METHOD" property="operateMethod" jdbcType="VARCHAR" />
+    <result column="ERROR_INFO" property="errorInfo" jdbcType="VARCHAR" />
+    <result column="OPERATE_TIME" property="operateTime" jdbcType="VARCHAR" />
+  </resultMap>
+  
+  <!-- 操作日志显示列 -->
+  <sql id="OperateLog_Column_List" >
+    ID,
+    OPERATE_BY,
+    OPERATE_NAME,
+    OPERATE_DEPT_NAME,
+    OPERATE_TIME,
+    OPERATE_TYPE,
+    OPERATE_CATEGORY,
+    OPERATE_CONTENT,
+    OPERATE_CATEGORY_TYPE
+  </sql>
+  
+  <!--系统日志显示列 -->
+  <sql id="SystemLog_Column_List" >
+    ID,
+    OPERATE_BY,
+    OPERATE_NAME,
+    OPERATE_DEPT_NAME,
+    OPERATE_TIME,
+    FUNCTION_MODULE,
+    FUNCTION_MODULE_NAME,
+    OPERATE_CLASS,
+    OPERATE_METHOD,
+    ERROR_INFO
+  </sql>
+  
+  <!-- 保存操作日志 -->
+  <insert id="saveOperateLog" parameterType="com.ps.result.systemmanage.OperateLogVo" >
+    insert into PMS_OPERATELOG (id, operate_by, operate_name,operate_time, operate_type, 
+      operate_category, operate_content, operate_category_type)
+    values (PMS_OPERATELOG_TB_SEQ.NEXTVAL,#{operateBy,jdbcType=VARCHAR}, #{operateName,jdbcType=VARCHAR}, SYSDATE, #{operateType,jdbcType=VARCHAR}, 
+      #{operateCategory,jdbcType=VARCHAR}, #{operateContent,jdbcType=VARCHAR}, #{operateCategoryType,jdbcType=VARCHAR} 
+     )
+  </insert>
+  
+  <!-- 根据条件查询操作日志 -->
+  <select id="queryOperateLogByParam" resultMap="OperateLogResultMap" parameterType="com.ps.result.systemmanage.OperateLogVo" >
+    select
+    <include refid="OperateLog_Column_List" />
+    from PMS_OPERATELOG 
+    where 1=1
+	<if test="operateName !=null and operateName !=''">
+	  	and OPERATE_NAME LIKE '%'||#{operateName}||'%'
+	</if>
+	<if test="operateBeginDate !=null and operateBeginDate !=''">
+		AND operate_time>=to_date(#{operateBeginDate},'yyyy/mm/dd hh24:mi:ss') 
+	</if>
+	<if test="operateEndDate !=null and operateEndDate !=''">
+		AND to_date(#{operateEndDate},'yyyy/mm/dd hh24:mi:ss')>=operate_time
+	</if>
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by OPERATE_TIME
+		</otherwise>
+	</choose>
+  </select>
+  
+  <!-- 保存系统日志 -->
+  <insert id="saveSystemLog" parameterType="com.ps.result.systemmanage.SystemLogerVo" >
+    insert into PMS_systemlog (
+    	id,
+		operate_by,
+		operate_name,
+		function_module,
+		function_module_name,
+		operate_class,
+		operate_method,
+		error_info,
+		operate_time
+    )values (
+    	PMS_SYSTEMLOG_TB_SEQ.NEXTVAL,
+    	#{operateBy,jdbcType=VARCHAR},
+    	#{operateName,jdbcType=VARCHAR}, 
+      	#{functionModule,jdbcType=VARCHAR},
+      	#{functionModuleName,jdbcType=VARCHAR}, 
+      	#{operateClass,jdbcType=VARCHAR},
+      	#{operateMethod,jdbcType=VARCHAR},
+      	#{errorInfo,jdbcType=VARCHAR}, 
+      	sysdate
+    )
+  </insert>
+  
+  <!-- 根据条件查询系统日志 -->
+  <select id="querySystemLogByParam" resultMap="SystemLogResultMap" parameterType="com.ps.result.systemmanage.SystemLogerVo" >
+    select
+    <include refid="SystemLog_Column_List" />	
+    from PMS_systemlog
+    where 1=1
+    <!-- 功能模块 -->
+    <if test="functionModule != null and functionModule != '' and functionModule !='null'">
+	  AND function_module = #{functionModule}
+    </if>
+    <!-- 操作者名称 -->
+    <if test="operateName != null and operateName != ''">
+	     AND LOWER(operate_name) LIKE '%'||LOWER(#{operateName})||'%'
+	</if>
+    <!-- 操作开始时间 -->
+    <if test="operateBeginDate != null and operateBeginDate != '' and operateBeginDate !='null'">
+    	<![CDATA[
+	  	AND operate_time >= to_date(#{operateBeginDate},'yyyy-MM-dd hh24:MI:ss')
+	  	]]>
+    </if>
+    <!-- 操作结束时间 -->
+    <if test="operateEndDate != null and operateEndDate != '' and operateEndDate !='null'">
+    	<![CDATA[
+	  	AND operate_time <=	to_date(#{operateEndDate},'yyyy-MM-dd hh24:MI:ss')
+	  	]]>
+    </if>
+	<choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by operate_time desc
+		</otherwise>
+    </choose>
+  </select>
+</mapper>

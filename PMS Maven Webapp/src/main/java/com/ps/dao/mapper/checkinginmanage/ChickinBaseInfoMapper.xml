@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.checkinginmanage.ChickinBaseInfoDao" >
+  <!-- 打卡记录映射表 -->
+  <resultMap id="ChcikinMap" type="com.ps.result.checkinginmanage.ChickinBaseInfoVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="CHICKIN_STATE" property="chickinState" jdbcType="VARCHAR" />
+    <result column="CHICKIN_BY" property="chickinBy" jdbcType="VARCHAR" />
+    <result column="CHICKIN_TIME" property="chickinTime" jdbcType="VARCHAR" />
+    <result column="CHICKIN_TYPE" property="chickinType" jdbcType="VARCHAR" />
+ 
+    <result column="CHICKIN_REASON" property="chickinReason" jdbcType="VARCHAR" />
+    <result column="CHICKIN_STATE_STR" property="chickinStateStr" jdbcType="VARCHAR" />
+     <result column="CHICKIN_TYPE_STR" property="chickinTypeStr" jdbcType="VARCHAR" />
+    <result column="user_name" property="userName" jdbcType="VARCHAR" />
+   <!--  <result column="ID" property="id" jdbcType="VARCHAR" /> -->
+   
+   
+  </resultMap>
+  <!--查询打卡记录 所有的表字段-->
+  <sql id="Approval_Column_List" >
+    t1.ID,
+    CHICKIN_STATE,
+    CHICKIN_BY,
+    CHICKIN_TIME,
+    CHICKIN_TYPE,
+    CHICKIN_REASON,
+  </sql>
+  
+  <!-- 根据考勤id查询考勤记录 -->
+  <select id="queryChickinBaseInfoById" parameterType="java.lang.String" resultMap="ChcikinMap">
+  	select
+	    t1.ID,
+	    t1.CHICKIN_STATE,
+	    t1.CHICKIN_BY,
+	    to_char(t1.CHICKIN_TIME,'yyyy-mm-dd hh24:mi') CHICKIN_TIME,
+	    t1.CHICKIN_TYPE,
+	    t1.CHICKIN_REASON
+    from PMS_CHICKIN t1 where 1 = 1 and t1.id = #{id,jdbcType=VARCHAR}
+  </select>
+  
+  <select id="queryChickinByParam" resultMap="ChcikinMap" parameterType="com.ps.result.checkinginmanage.ChickinBaseInfoVo" >
+    select
+	    t1.ID,
+	    t1.CHICKIN_STATE,
+	    t1.CHICKIN_BY,
+	    to_char(t1.CHICKIN_TIME,'yyyy-mm-dd hh24:mi') CHICKIN_TIME,
+	    t1.CHICKIN_TYPE,
+	    t1.CHICKIN_REASON,
+	    t7.code_zh CHICKIN_STATE_STR,
+	    t8.code_zh CHICKIN_TYPE_STR,t2.user_name
+    from PMS_CHICKIN t1 
+    LEFT JOIN PMS_CODE T7
+    ON t1.CHICKIN_STATE = T7.CODE_VALUE
+    AND T7.CODE_TYPE = 'chinkinStatus' and t7.WHETHER_PARENT = '1' 
+    LEFT JOIN PMS_CODE T8
+    ON t1.CHICKIN_TYPE = T8.CODE_VALUE
+    AND T8.CODE_TYPE = 'chinkinType' and t8.WHETHER_PARENT = '1'
+    left join pms_user t2 
+    on t1.chickin_by = t2.id
+  	where 1 =1 
+  	<if test="chickinState !=null and chickinState != ''">
+  		and t1.CHICKIN_STATE = #{chickinState,jdbcType=VARCHAR }
+  	</if>
+  	<if test="chickinByName !=null and chickinByName != ''">
+  		and t2.USER_NAME like '%'||#{chickinByName}|| '%'
+  	</if>
+  	<if test="beginTime !=null and beginTime != ''">
+  		and t1.CHICKIN_TIME &gt;= to_date(#{beginTime,jdbcType=NVARCHAR},'YYYY-MM-DD')
+  	</if>
+  	<if test="endTime !=null and endTime != ''">
+  		and t1.CHICKIN_TIME &lt; to_date(#{endTime,jdbcType=NVARCHAR},'YYYY-MM-DD')
+  	</if>
+  	<!-- 无权限 -->
+	 <if test="authority == 0">
+       and 1!=1
+     </if>
+	 <!-- 查看个人 -->
+     <if test="authority == 1">
+    	and t1.CHICKIN_BY = #{authUserId,jdbcType=VARCHAR }
+     </if>
+     <!-- 查看项目 -->
+     <if test="authority == 2">
+     	and ','||#{authDeptId,jdbcType=VARCHAR }||',' like '%,'||t2.DEPT_ID||',%'
+     </if>
+     <!-- 查看部门 -->
+     <if test="authority == 3">
+    	<if test="authDeptId != null and authDeptId != '' and authDeptId != 'null' ">
+    	  AND (
+		  <foreach collection="authDeptId.split(',')" item="authDept" index="index"
+		      open="" close="" separator="or">
+		      (','||t2.DEPT_ID||',' like '%,'||#{authDept,jdbcType=VARCHAR}||',%')
+		  </foreach>
+		  )
+     	</if>
+     	<if test="authDeptId == null or authDeptId == '' or authDeptId == 'null' ">
+		  AND 1!=1
+		</if>
+     </if>
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by Create_date DESC
+		</otherwise>
+	</choose>
+  </select>  
+  
+  <!-- 根据参数查询合同信息 -->
+  <select id="queryChickinBaseInfoInfoByParam" resultMap="ChcikinMap" parameterType="com.ps.result.checkinginmanage.ChickinBaseInfoVo" >
+    select
+     t1.ID,
+    CHICKIN_STATE,
+    CHICKIN_BY,
+    CHICKIN_TIME,
+    CHICKIN_TYPE,
+    CHICKIN_REASON  
+    from PMS_CHICKIN
+   	<choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by t1.${orderByClause}
+		</when>
+		<otherwise>
+			order by CREATE_DATE
+		</otherwise>
+	</choose>
+  </select>
+   <!-- 根据ID查询合同信息 -->
+  <select id="queryContractAppById" resultMap="ChcikinMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Approval_Column_List" />
+    from PMS_CHICKIN a
+    where a.ID =  #{id,jdbcType=DECIMAL }
+  </select>
+  <!-- 打卡记录 -->
+  <!-- 插入用戶 -->
+  <insert id="saveChickin" parameterType="com.ps.result.checkinginmanage.ChickinBaseInfoVo">
+  	insert into PMS_CHICKIN(
+	    ID,
+    CHICKIN_STATE,
+    CHICKIN_BY,
+    CHICKIN_TIME,
+    CHICKIN_TYPE,
+    CHICKIN_REASON)
+	     values(
+	     	PMS_CHICKIN_TB_SEQ.NEXTVAL,
+	       #{chickinState,jdbcType=VARCHAR },
+	       #{chickinBy,jdbcType=VARCHAR },
+	       to_date(#{chickinTime,jdbcType=VARCHAR },'yyyy-mm-dd hh24:mi:ss'),
+	       #{chickinType,jdbcType=VARCHAR },
+	       #{chickinReason,jdbcType=VARCHAR }) 
+  </insert>
+  
+  <!-- 修改信息 -->
+  <update id="updateChickin" parameterType="com.ps.result.checkinginmanage.ChickinBaseInfoVo" >
+    update PMS_CHICKIN
+    <set >
+   		<if test="chickinTime != null and chickinTime != '' and chickinTime !='null'">
+   			CHICKIN_TIME = to_date(#{chickinTime,jdbcType=VARCHAR },'yyyy-mm-dd hh24:mi:ss'),
+   		</if>
+   		<if test="chickinState != null and chickinState != '' and chickinState !='null'">
+   			CHICKIN_STATE = #{chickinState,jdbcType=VARCHAR },
+   		</if>
+   		<if test="chickinType != null and chickinType != '' and chickinType !='null'">
+   			CHICKIN_TYPE =  #{chickinType,jdbcType=VARCHAR },
+   		</if>
+   		<if test="chickinReason != null and chickinReason != '' and chickinReason !='null'">
+   			CHICKIN_REASON =  #{chickinReason,jdbcType=VARCHAR }
+   		</if>
+    </set>
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 根据ID删除打卡记录 -->
+   <delete id="deleteChickinById" parameterType="com.ps.result.checkinginmanage.ChickinBaseInfoVo" >
+     DELETE FROM  PMS_CHICKIN  where ID =  #{id,jdbcType=DECIMAL } 
+   
+  </delete>
+  
+  <select id="queryChickinBaseInfoInfoByCount" parameterType="com.ps.result.checkinginmanage.ChickinBaseInfoVo" resultType="java.lang.Integer">
+  	select 
+    	count(1)
+    from PMS_CHICKIN a
+    where a.CHICKIN_TYPE =  #{chickinType,jdbcType=DECIMAL }
+    and a.CHICKIN_BY = #{chickinBy,jdbcType=DECIMAL}
+    and a.CHICKIN_TIME &gt;= to_date(#{chickinTime,jdbcType=VARCHAR },'yyyy-mm-dd hh24:mi:ss')
+  	and a.CHICKIN_TIME &lt; to_date(#{chickinTimeAddDay,jdbcType=VARCHAR },'yyyy-mm-dd hh24:mi:ss')
+   
+  </select>
+  
+  <delete id="deleteChickinByTime" parameterType="com.ps.result.checkinginmanage.ChickinBaseInfoVo" >
+    delete 
+    from PMS_CHICKIN a
+    where a.CHICKIN_TYPE =  #{chickinType,jdbcType=DECIMAL }
+    and a.CHICKIN_BY = #{chickinBy,jdbcType=DECIMAL}
+    and a.CHICKIN_TIME &gt;= to_date(#{chickinTime,jdbcType=VARCHAR },'yyyy-mm-dd hh24:mi:ss')
+  	and a.CHICKIN_TIME &lt; to_date(#{chickinTimeAddDay,jdbcType=VARCHAR },'yyyy-mm-dd hh24:mi:ss')
+  
+  </delete>
+</mapper>

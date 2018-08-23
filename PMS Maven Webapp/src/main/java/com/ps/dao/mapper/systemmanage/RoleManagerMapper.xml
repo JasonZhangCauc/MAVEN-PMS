@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.systemmanage.RoleManagerDao">
+    <!-- 角色表实体映射类 -->
+    <resultMap id="RoleResultMap" type="com.ps.result.systemmanage.RoleVo" >
+	    <id column="ID" property="id" jdbcType="DECIMAL" />
+	    <result column="ID" property="id" jdbcType="VARCHAR" />
+	    <result column="ROLE_CODE" property="roleCode" jdbcType="VARCHAR" />
+	    <result column="ROLE_CNAME" property="roleCname" jdbcType="VARCHAR" />
+	    <result column="ROLE_ENAME" property="roleEname" jdbcType="VARCHAR" />
+	    <result column="ROLE_FLAG" property="roleFlag" jdbcType="VARCHAR" />
+	    <result column="ROLE_DESC" property="roleDesc" jdbcType="VARCHAR" />
+	    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+	    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+	    <result column="UPDATE_BY" property="updateBy" jdbcType="VARCHAR" />
+	    <result column="UPDATE_DATE" property="updateDate" jdbcType="VARCHAR" />
+    </resultMap>
+    
+    <!-- 查询字段 -->
+    <sql id="Role_Column_List" >
+        ID,
+	    ROLE_CODE,
+	    ROLE_CNAME,
+	    ROLE_ENAME,
+	    ROLE_FLAG,
+	    ROLE_DESC,
+	    CREATE_BY,
+	    CREATE_DATE,
+	    UPDATE_BY,
+	    UPDATE_DATE
+    </sql>
+    
+    <!-- 根据用户获取对应角色信息 -->
+    <select id="queryRoleInfoByUser" parameterType="com.ps.result.systemmanage.UserVo" resultMap="RoleResultMap">
+      SELECT 
+      	   <include refid="Role_Column_List" />,
+	       (SELECT COUNT(*)
+		          FROM PMS_USERROLE t1
+		         WHERE t1.ROLE_ID = T.id
+		           AND t1.USER_ID = #{id, jdbcType = DECIMAL}) flag
+	  FROM PMS_ROLE T
+	  WHERE 1 = 1
+	  AND T.ROLE_FLAG = 0
+    </select>
+	
+	<!-- 根据查询条件获取角色信息 -->
+	<select id="queryRoleInfoByParam" parameterType="com.ps.result.systemmanage.RoleVo" resultMap="RoleResultMap">
+		SELECT
+			   <include refid="Role_Column_List" />,
+		  	   (SELECT COUNT(*)
+		          FROM PMS_USERROLE t1
+		         WHERE t1.ROLE_ID = T.id
+		           AND t1.USER_ID = #{userId, jdbcType = DECIMAL}) flag
+		  FROM PMS_ROLE T
+		  WHERE 1=1
+		<if test="roleName != null and roleName != ''">
+			AND (LOWER(t.ROLE_CNAME) LIKE '%'||LOWER(#{roleName})||'%' OR  LOWER(t.ROLE_ENAME) LIKE '%'||LOWER(#{roleName})||'%')
+		</if>
+		<if test="roleCode != null and roleCode != ''">
+			AND  t.ROLE_CODE LIKE '%' || #{roleCode} || '%'
+		</if>
+		<if test="roleFlag != null and roleFlag != ''">
+			AND  ROLE_FLAG in (${roleFlag})
+		</if>
+	    <choose>
+			<when test="orderByClause != null and orderByClause != ''">
+				order by ${orderByClause}
+			</when>
+			<otherwise>
+				order by t.ROLE_CODE DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 根据ID查询角色信息 -->
+	<select id="getRoleInfoById" resultMap="RoleResultMap">
+		SELECT  
+		<include refid="Role_Column_List" />
+		FROM PMS_ROLE 
+		WHERE ID=#{roleId,jdbcType=DECIMAL}
+	</select>
+	
+	<!-- 根据角色ID更新角色状态 -->
+	<update id="updateRoleFlag">
+		UPDATE PMS_ROLE SET ROLE_FLAG=#{roleFlag,jdbcType=VARCHAR} WHERE ID=#{roleId,jdbcType=DECIMAL}
+	</update>
+	
+	<!-- 新增角色信息 -->
+	<insert id="addRoleInfo" parameterType="com.ps.result.systemmanage.RoleVo">
+		insert into PMS_ROLE
+	    <trim prefix="(" suffix=")" suffixOverrides="," >
+		    ID,
+		    ROLE_CODE,
+		    ROLE_CNAME,
+		    ROLE_ENAME,
+		    ROLE_FLAG,
+		    ROLE_DESC,
+		    CREATE_BY,
+		    CREATE_DATE,
+		    UPDATE_BY,
+		    UPDATE_DATE,
+	    </trim>
+	    <trim prefix="values (" suffix=")" suffixOverrides="," >
+	       PMS_ROLE_TB_SEQ.NEXTVAL,
+	       #{roleCode,jdbcType=VARCHAR },
+	       #{roleCname,jdbcType=VARCHAR },
+	       #{roleEname,jdbcType=VARCHAR },
+	       0,
+	       #{roleDesc,jdbcType=VARCHAR },
+	       #{createBy,jdbcType=VARCHAR },
+	       sysdate,
+	       #{updateBy,jdbcType=VARCHAR },
+	       sysdate,
+	    </trim>
+	</insert>
+	
+	<!-- 根据角色ID修改角色信息 -->
+	<update id="updateRoleInfo" parameterType="com.ps.result.systemmanage.RoleVo">
+		update PMS_ROLE
+		set
+    		ROLE_CODE =  #{roleCode,jdbcType=VARCHAR },
+    		ROLE_CNAME =  #{roleCname,jdbcType=VARCHAR },
+    		ROLE_ENAME =  #{roleEname,jdbcType=VARCHAR },
+    		ROLE_DESC =  #{roleDesc,jdbcType=VARCHAR },
+			UPDATE_BY =  #{updateBy,jdbcType=VARCHAR },
+	    	UPDATE_DATE =  sysdate
+	    where ID = #{id,jdbcType=DECIMAL}
+	</update>
+	
+	<!-- 通过角色名称获取角色信息 -->
+	<select id="getRoleInfoByRoleCode" parameterType="com.ps.result.systemmanage.RoleVo"  resultMap="RoleResultMap">
+		SELECT  
+		<include refid="Role_Column_List" />
+		FROM PMS_ROLE t
+		WHERE 1=1
+		<if test="id !=null and id !=''">
+		   AND ID != #{id,jdbcType=DECIMAL}
+		</if>
+		<if test="roleCode !=null and roleCode !=''">
+		   AND t.ROLE_CODE = #{roleCode}
+		</if>
+	</select>
+	
+	<!-- 加载资源树 -->
+	<select id="loadRoleResourceTree" resultType="com.ps.result.systemmanage.ResourceVo">
+		SELECT ID id,
+	       RESOURCE_CODE resourceCode,
+	       RESOURCE_URL resourceUrl,
+	       RESOURCE_TYPE resourceType,
+	       RESOURCE_DESCCH resourceDescch,
+	       RESOURCE_DESCEN resourceDescen,
+	       RESOURCE_PID pId,
+	       RESOURCE_ORDER resourceOrder,
+	       RESOURCE_ISSHOW resourceIsshow,
+	       RESOURCE_ICON resourceIcon
+	    FROM PMS_RESOURCE
+		WHERE 1=1
+		and RESOURCE_ISSHOW='0'
+		ORDER BY RESOURCE_ORDER ASC
+	</select>
+	
+	<!-- 根据角色ID获取对应资源 -->
+	<select id="loadRoleResourceId" resultType="java.lang.String">
+		SELECT DISTINCT 
+   		Rs.ID ID
+		FROM PMS_RESOURCE Rs,
+			 PMS_ROLERESOURCE RR,
+			 PMS_ROLE Ro
+	 	WHERE 1=1
+		 	 AND Rs.ID = RR.RESOURCE_ID
+		 	 AND Ro.ID = RR.ROLE_ID
+			 AND Ro.ID = #{roleId,jdbcType=DECIMAL}
+			 AND Rs.RESOURCE_ISSHOW='0'
+	</select>
+	
+	<!-- 根据角色ID删除资源 -->
+	<delete id="deleteRoleResources">
+		DELETE FROM PMS_ROLERESOURCE WHERE ROLE_ID=#{roleId,jdbcType=DECIMAL}
+	</delete>
+	
+	<!-- 分配角色资源 -->
+	<insert id="addRoleResource" parameterType="com.ps.result.systemmanage.RoleResourcesVo">
+		INSERT INTO PMS_ROLERESOURCE(ROLE_ID,RESOURCE_ID) 
+	    <foreach collection="rsvoList" index="index" item="item"
+			separator="UNION ALL">
+			SELECT #{roleId,jdbcType=DECIMAL} ROLE_ID, #{item,jdbcType=DECIMAL} RESOURCE_ID  from dual
+		</foreach>
+	</insert>
+</mapper>

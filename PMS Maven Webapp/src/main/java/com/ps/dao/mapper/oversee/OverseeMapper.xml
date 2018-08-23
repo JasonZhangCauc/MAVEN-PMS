@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.taskManage.OverseeDao" >
+  <resultMap id="OverseeInfoResultMap" type="com.ps.result.taskmanage.OverseeVo" >
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="INITIATE_BY" property="initiateBy" jdbcType="VARCHAR" />
+    <result column="NUMBER_DATE" property="numberDate" jdbcType="VARCHAR" />
+    <result column="RESPONSIBLE_MAIN" property="responsibleMain" jdbcType="VARCHAR" />
+    <result column="RESPONSIBLE_SECONDARY" property="responsibleSecondary" jdbcType="VARCHAR" />
+    <result column="RESPONSIBILITY_DEPARTMENT" property="responsibilityDepartment" jdbcType="VARCHAR" />
+    <result column="TASK_SOURCE" property="taskSource" jdbcType="VARCHAR" />
+    <result column="RELEVANCE_PROJECT" property="relevanceProject" jdbcType="VARCHAR" />
+    <result column="PRIORITY" property="priority" jdbcType="VARCHAR" />
+    <result column="TASK_DEFINITION" property="taskDefinition" jdbcType="VARCHAR" />
+    <result column="REQUIRED_DATE" property="requiredDate" jdbcType="VARCHAR" />
+    <result column="ADJUST_REASON" property="adjustReason" jdbcType="VARCHAR" />
+    <result column="ACTUAL_DATE" property="actualDate" jdbcType="VARCHAR" />
+    <result column="WHETHER_DELAY" property="whetherDelay" jdbcType="VARCHAR" />
+    <result column="DELAY_DAY" property="delayDay" jdbcType="VARCHAR" />
+    <result column="WHETHER_ADVANCE" property="whetherAdvance" jdbcType="VARCHAR" />
+    <result column="ADVANCE_DATE" property="advanceDate" jdbcType="VARCHAR" />
+    <result column="CONCLUSION" property="conclusion" jdbcType="VARCHAR" />
+    <result column="PERFORMANCE" property="performance" jdbcType="VARCHAR" />
+    <result column="DELAY_TIME" property="delayTime" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="ACCEPTER" property="accepter" jdbcType="VARCHAR" />
+    <result column="STATUS" property="status" jdbcType="VARCHAR" />
+    <result column="responsibleMainId" property="responsibleMainId" jdbcType="VARCHAR" />
+    
+  </resultMap>
+  <!--查询字段 所有的表字段-->
+  <sql id="Base_Column_List" >
+    ID,
+    INITIATE_BY,
+    to_char(NUMBER_DATE,'yyyy-mm-dd') NUMBER_DATE,
+    RESPONSIBLE_MAIN,
+    RESPONSIBLE_SECONDARY,
+    RESPONSIBILITY_DEPARTMENT,
+    TASK_SOURCE,
+    RELEVANCE_PROJECT,
+    PRIORITY,
+    TASK_DEFINITION,
+    to_char(REQUIRED_DATE,'yyyy-mm-dd') REQUIRED_DATE,
+    ADJUST_REASON,
+    to_char(ACTUAL_DATE,'yyyy-mm-dd') ACTUAL_DATE,
+    WHETHER_DELAY,
+    DELAY_DAY,
+    WHETHER_ADVANCE,
+    ADVANCE_DATE,
+    CONCLUSION,
+    PERFORMANCE,
+    to_char(DELAY_TIME,'yyyy-mm-dd') DELAY_TIME,
+    CREATE_BY,
+    to_char(CREATE_DATE,'yyyy-mm-dd') CREATE_DATE,
+    ACCEPTER,
+    STATUS
+  </sql>
+  
+  <!-- 添加监督信息 -->
+  <insert id="insertSuperviseInfo" parameterType="com.ps.result.taskmanage.OverseeVo">
+  	insert into PMS_OVERSEE
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+	    ID,
+	    INITIATE_BY,
+	    NUMBER_DATE,
+	    RESPONSIBLE_MAIN,
+	    RESPONSIBLE_SECONDARY,
+	    RESPONSIBILITY_DEPARTMENT,
+	    TASK_SOURCE,
+	    RELEVANCE_PROJECT,
+	    PRIORITY,
+	    TASK_DEFINITION,
+	    REQUIRED_DATE,
+	    ADJUST_REASON,
+	    ACTUAL_DATE,
+	    WHETHER_DELAY,
+	    DELAY_DAY,
+	    WHETHER_ADVANCE,
+	    ADVANCE_DATE,
+	    CONCLUSION,
+	    PERFORMANCE,
+	    DELAY_TIME,
+	    CREATE_BY,
+	    CREATE_DATE,
+	    ACCEPTER,
+	    STATUS
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       PMS_OVERSEE_SEQ.nextval,
+       #{initiateBy,jdbcType=VARCHAR },
+       to_date(#{numberDate,jdbcType=VARCHAR },'yyyy-mm-dd'),
+       #{responsibleMain,jdbcType=VARCHAR },
+       #{responsibleSecondary,jdbcType=VARCHAR },
+       #{responsibilityDepartment,jdbcType=VARCHAR },
+       #{taskSource,jdbcType=VARCHAR },
+       #{relevanceProject,jdbcType=VARCHAR },
+       #{priority,jdbcType=VARCHAR },
+       #{taskDefinition,jdbcType=VARCHAR },
+       to_date(#{requiredDate,jdbcType=VARCHAR },'yyyy-mm-dd'),
+       #{adjustReason,jdbcType=VARCHAR },
+       to_date(#{actualDate,jdbcType=VARCHAR },'yyyy-mm-dd'),
+       #{whetherDelay,jdbcType=VARCHAR },
+       #{delayDay,jdbcType=VARCHAR },
+       #{whetherAdvance,jdbcType=VARCHAR },
+       #{advanceDate,jdbcType=VARCHAR },
+       #{conclusion,jdbcType=VARCHAR },
+       #{performance,jdbcType=VARCHAR },
+       to_date(#{delayTime,jdbcType=VARCHAR },'yyyy-mm-dd'),
+       #{createBy,jdbcType=VARCHAR },
+       to_date(#{createDate,jdbcType=VARCHAR },'yyyy-mm-dd'),
+       #{accepter,jdbcType=VARCHAR },
+       #{status,jdbcType=VARCHAR}
+    </trim>
+  </insert>
+  
+  <!-- 审批督办信息 -->
+  <update id="updateSuperviseInfoList" parameterType="com.ps.result.taskmanage.OverseeVo">
+  	update PMS_OVERSEE
+  	<set >
+	    STATUS = #{status,jdbcType=VARCHAR}
+    </set>
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 调整督办信息 -->
+  <update id="updateSuperviseInfoById" parameterType="com.ps.result.taskmanage.OverseeVo">
+  	update PMS_OVERSEE
+    <set >
+    	REQUIRED_DATE =  to_date(#{requiredDate,jdbcType=VARCHAR },'yyyy-mm-dd'),
+    	ADJUST_REASON =  #{adjustReason,jdbcType=VARCHAR },
+    	STATUS = #{status,jdbcType=VARCHAR}
+    </set>
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  <!-- 修改督办信息 -->
+  <update id="updateSuperviseInfo" parameterType="com.ps.result.taskmanage.OverseeVo">
+  	update PMS_OVERSEE
+    <set >
+    	INITIATE_BY =  #{initiateBy,jdbcType=VARCHAR },
+   		NUMBER_DATE =  to_date(#{numberDate,jdbcType=VARCHAR },'yyyy-mm-dd'),
+   		RESPONSIBLE_MAIN =  #{responsibleMain,jdbcType=VARCHAR },
+   		RESPONSIBLE_SECONDARY =  #{responsibleSecondary,jdbcType=VARCHAR },
+   		RESPONSIBILITY_DEPARTMENT =  #{responsibilityDepartment,jdbcType=VARCHAR },
+   		TASK_SOURCE =  #{taskSource,jdbcType=VARCHAR },
+   		RELEVANCE_PROJECT =  #{relevanceProject,jdbcType=VARCHAR },
+   		PRIORITY =  #{priority,jdbcType=VARCHAR },
+   		TASK_DEFINITION =  #{taskDefinition,jdbcType=VARCHAR },
+   		REQUIRED_DATE =  to_date(#{requiredDate,jdbcType=VARCHAR },'yyyy-mm-dd'),
+	    ADJUST_REASON =  #{adjustReason,jdbcType=VARCHAR },
+	    ACTUAL_DATE =  to_date(#{actualDate,jdbcType=VARCHAR },'yyyy-mm-dd'),
+	    WHETHER_DELAY =  #{whetherDelay,jdbcType=VARCHAR },
+	    DELAY_DAY =  #{delayDay,jdbcType=VARCHAR },
+	    WHETHER_ADVANCE =  #{whetherAdvance,jdbcType=VARCHAR },
+	    ADVANCE_DATE =  #{advanceDate,jdbcType=VARCHAR },
+	    CONCLUSION =  #{conclusion,jdbcType=VARCHAR },
+	    PERFORMANCE =  #{performance,jdbcType=VARCHAR },
+	    DELAY_TIME =  to_date(#{delayTime,jdbcType=VARCHAR },'yyyy-mm-dd'),
+	    CREATE_BY =  #{createBy,jdbcType=VARCHAR },
+	    CREATE_DATE =  to_date(#{createDate,jdbcType=VARCHAR },'yyyy-mm-dd'),
+	    ACCEPTER =  #{accepter,jdbcType=VARCHAR },
+	    STATUS = #{status,jdbcType=VARCHAR}
+    </set>
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 根据督办id查询信息 -->
+  <select id="queryOverseeInfoById" resultMap="OverseeInfoResultMap" parameterType="java.lang.String" >
+  	select * from(
+	    SELECT
+		f1.ID,
+		f1.RESPONSIBILITY_DEPARTMENT,
+		f1.TASK_SOURCE,
+		to_char((SELECT wm_concat(t1.user_name) FROM pms_user t1 WHERE ','||f1.INITIATE_BY||',' LIKE '%,'||t1.id||',%'))initiateByName,
+		f1.INITIATE_BY,
+		to_char((SELECT wm_concat(t1.user_name) FROM pms_user t1 WHERE ','||f1.RESPONSIBLE_MAIN||',' LIKE '%,'||t1.id||',%'))responsibleMainName,
+		f1.RESPONSIBLE_MAIN,
+		to_char((SELECT wm_concat(t1.user_name) FROM pms_user t1 WHERE ','||f1.RESPONSIBLE_SECONDARY||',' LIKE '%,'||t1.id||',%'))responsibleSecondaryName,
+		f1.RESPONSIBLE_SECONDARY,
+		to_char((SELECT wm_concat(t1.user_name) FROM pms_user t1 WHERE ','||f1.CREATE_BY||',' LIKE '%,'||t1.id||',%'))createByName,
+		f1.CREATE_BY,
+		to_char((SELECT wm_concat(t1.user_name) FROM pms_user t1 WHERE ','||f1.ACCEPTER||',' LIKE '%,'||t1.id||',%'))accepterName,
+		f1.ACCEPTER,
+		f1.RELEVANCE_PROJECT,
+		f1.TASK_DEFINITION,
+		f1.DELAY_DAY,
+		f1.WHETHER_ADVANCE,
+		f1.PERFORMANCE,
+		f1.ADJUST_REASON,
+		f1.CONCLUSION,
+		f1.WHETHER_DELAY,
+		f1.PRIORITY,
+		to_char(f1.DELAY_TIME,'yyyy-mm-dd') DELAY_TIME,
+		f1.ADVANCE_DATE,
+		to_char(f1.REQUIRED_DATE,'yyyy-mm-dd') REQUIRED_DATE,
+		to_char(f1.ACTUAL_DATE,'yyyy-mm-dd') ACTUAL_DATE,
+		to_char(f1.NUMBER_DATE,'yyyy-mm-dd') NUMBER_DATE,
+		to_char(f1.CREATE_DATE,'yyyy-mm-dd') CREATE_DATE,f1.STATUS
+		from PMS_OVERSEE f1
+	)m
+	where 1=1
+    and m.ID =  #{id,jdbcType=DECIMAL}
+  </select>
+  
+  <!-- 根据参数查询列表信息 -->
+  <select id="queryOverseeInfoInfoByParam" resultMap="OverseeInfoResultMap" parameterType="com.ps.result.taskmanage.OverseeVo" >
+    select * from(
+	    SELECT
+		f1.ID,
+		to_char((SELECT wm_concat(t1.user_name) FROM pms_user t1 WHERE ','||f1.INITIATE_BY||',' LIKE '%,'||t1.id||',%'))INITIATE_BY,
+		to_char((SELECT wm_concat(t1.user_name) FROM pms_user t1 WHERE ','||f1.RESPONSIBLE_MAIN||',' LIKE '%,'||t1.id||',%'))RESPONSIBLE_MAIN,
+		to_char((SELECT wm_concat(t1.user_name) FROM pms_user t1 WHERE ','||f1.RESPONSIBLE_SECONDARY||',' LIKE '%,'||t1.id||',%'))RESPONSIBLE_SECONDARY,
+		to_char((SELECT wm_concat(t1.user_name) FROM pms_user t1 WHERE ','||f1.CREATE_BY||',' LIKE '%,'||t1.id||',%'))CREATE_BY,
+		to_char((SELECT wm_concat(t1.user_name) FROM pms_user t1 WHERE ','||f1.ACCEPTER||',' LIKE '%,'||t1.id||',%'))ACCEPTER,
+		f1.RESPONSIBLE_MAIN responsibleMainId,
+		f1.RESPONSIBLE_MAIN RESPONSIBLE_MAIN_ID,
+		f1.RELEVANCE_PROJECT,
+		f1.TASK_DEFINITION,
+		f1.PRIORITY,f1.STATUS,
+		f1.REQUIRED_DATE,
+		to_char(f1.REQUIRED_DATE,'yyyy-mm-dd') requiredDateShow,
+		to_date(f1.ACTUAL_DATE,'yyyy-mm-dd') ACTUAL_DATE,
+		to_date(f1.CREATE_DATE,'yyyy-mm-dd') CREATE_DATE,
+		pb.PROJECT_NAME          relevanceProjectName,
+		T8.CODE_ZH 			priorityName,
+		f1.CONCLUSION,
+		t9.CODE_ZH statusCode
+		from PMS_OVERSEE f1
+		left join Pms_User t6 on 
+  		f1.responsible_main = t6.id
+		LEFT JOIN PMS_CODE T7
+	    ON f1.RELEVANCE_PROJECT = T7.CODE_VALUE
+	    AND T7.CODE_TYPE = 'projectonly'
+	    LEFT JOIN PMS_CODE T8
+	    ON f1.PRIORITY = T8.CODE_VALUE
+	    AND T8.CODE_TYPE = 'priorityonly'
+	    left join PMS_CODE t9
+	    on f1.STATUS = t9.CODE_VALUE
+	    and t9.CODE_TYPE = 'auditStatus'
+		and t9.WHETHER_PARENT = 1
+		left join PMS_PROJECT_BASEINFO pb 
+		on f1.RELEVANCE_PROJECT = pb.ID
+		where 1=1
+		<if test="authority == 0">
+	       and 1!=1
+	    </if>
+		 <!-- 查看个人 -->
+	     <if test="authority == 1">
+	    	and (
+	    		','||f1.RESPONSIBLE_MAIN||',' LIKE '%,'||#{authUserId,jdbcType=VARCHAR }||',%'
+	    		or f1.CREATE_BY = #{authUserId,jdbcType=VARCHAR }
+	    	)
+	     </if>
+	     <!-- 查看项目 -->
+	     <if test="authority == 2">
+	     	and ','||#{authDeptId,jdbcType=VARCHAR }||',' like '%,'||pb.TO_DIVISION||',%'
+	     </if>
+	     <!-- 查看部门 -->
+	     <if test="authority == 3">
+	     	<if test="authDeptId != null and authDeptId != '' and authDeptId != 'null' ">
+	    	  AND (
+			  <foreach collection="authDeptId.split(',')" item="authDept" index="index"
+			      open="" close="" separator="or">
+			      (','||t6.DEPT_ID||',' like '%,'||#{authDept,jdbcType=VARCHAR}||',%')
+			  </foreach>
+			  )
+	     	</if>
+	     	<if test="authDeptId == null or authDeptId == '' or authDeptId == 'null' ">
+			  AND 1!=1
+			</if>
+	     </if>
+	)m
+	where 1=1
+	<if test="responsibleMain !=null and responsibleMain !=''">
+		and m.RESPONSIBLE_MAIN_ID like '%'||#{responsibleMain,jdbcType=VARCHAR}|| '%'
+	</if>
+	<if test="conclusion !=null and conclusion !=''">
+		and m.CONCLUSION= #{conclusion}
+	</if>
+	<if test="responsibilityDepartment !=null and responsibilityDepartment !=''">
+		and m.RESPONSIBILITY_DEPARTMENT like '%'||#{responsibilityDepartment,jdbcType=VARCHAR}|| '%'
+	</if>
+	
+	<if test="relevanceProject !=null and relevanceProject !=''">
+		and m.RELEVANCE_PROJECT like '%'||#{relevanceProject,jdbcType=VARCHAR}|| '%'
+	</if>
+	
+	<if test="priority !=null and priority !=''">
+		and m.PRIORITY= #{priority}
+	</if>
+	
+	<if test="taskDefinition !=null and taskDefinition !=''">
+		and m.TASK_DEFINITION like '%'||#{taskDefinition,jdbcType=VARCHAR}|| '%'
+	</if>
+	
+	<if test="responsibleMainmh !=null and responsibleMainmh !=''">
+		and m.RESPONSIBLE_MAIN like '%'||#{responsibleMainmh,jdbcType=VARCHAR}|| '%'
+	</if>
+	
+	
+	<if test="beginTime != null and beginTime != ''">
+	   		AND m.REQUIRED_DATE &gt;=to_date(#{beginTime,jdbcType=NVARCHAR},'YYYY-MM-DD')
+	   </if>
+	   <if test="endTime != null and endTime != ''">
+	   		AND m.REQUIRED_DATE &lt;to_date(#{endTime,jdbcType=NVARCHAR},'YYYY-MM-DD')
+	   		
+	   </if>
+	
+	<choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by m.CREATE_DATE DESC
+		</otherwise>
+	 </choose>
+  </select>
+  
+  <delete id="deleteSuperviseInfo" parameterType="java.lang.String" >
+    delete from PMS_OVERSEE
+    where ID =  #{id,jdbcType=DECIMAL }
+  </delete>
+  
+</mapper>

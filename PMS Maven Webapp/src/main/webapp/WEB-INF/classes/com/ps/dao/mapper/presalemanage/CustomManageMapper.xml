@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.presalemanage.CustomManageDao" >
+	<!-- 客户管理映射类 -->
+  <resultMap id="CustomResultMap" type="com.ps.result.presalemanage.CustomerVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="TAXPAYER_NAME" property="taxpayerName" jdbcType="VARCHAR" />
+    <result column="UPDATE_BY" property="updateBy" jdbcType="VARCHAR" />
+    <result column="UPDATE_DATE" property="updateDate" jdbcType="VARCHAR" />
+    <result column="TAXPAYER_NUMBER" property="taxpayerNumber" jdbcType="VARCHAR" />
+    <result column="TAXPAYER_ADDRESS" property="taxpayerAddress" jdbcType="VARCHAR" />
+    <result column="TAXPAYER_PHONE" property="taxpayerPhone" jdbcType="VARCHAR" />
+    <result column="TAXPAYER_BANK" property="taxpayerBank" jdbcType="VARCHAR" />
+    <result column="TAXPAYER_ACCOUNT" property="taxpayerAccount" jdbcType="VARCHAR" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="CUSTOM_SHORT_NAME" property="customShortName" jdbcType="VARCHAR" />
+    <result column="CUSTOM_NAME" property="customName" jdbcType="VARCHAR" />
+    <result column="CUSTOM_ADDRESS" property="customAddress" jdbcType="VARCHAR" />
+    <result column="CUSTOM_CODE" property="customCode" jdbcType="VARCHAR" />
+    <result column="CONTACT_PHONE" property="contactPhone" jdbcType="VARCHAR" />
+    <result column="EMAIL" property="email" jdbcType="VARCHAR" />
+    <result column="REMARK" property="remark" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="STATUS" property="status" jdbcType="VARCHAR" />
+    <result column="SECOND" property="second" jdbcType="VARCHAR" />
+    <result column="USER_PIC" property="userPic" jdbcType="VARCHAR" />
+  </resultMap>
+  <!--查询字段 所有的表字段-->
+  <sql id="Custom_Column_List" >
+    TAXPAYER_NAME,
+    TAXPAYER_NUMBER,
+    TAXPAYER_ADDRESS,
+    TAXPAYER_PHONE,
+    TAXPAYER_BANK,
+    TAXPAYER_ACCOUNT,
+    ID,
+    CUSTOM_SHORT_NAME,
+    CUSTOM_NAME,
+    CUSTOM_ADDRESS,
+    CUSTOM_CODE,
+    CONTACT_PHONE,
+    EMAIL,
+    REMARK,
+    CREATE_BY,
+    to_char(CREATE_DATE,'yyyy-mm-dd hh24:mi') CREATE_DATE,
+    UPDATE_BY,
+    to_char(UPDATE_DATE,'yyyy-mm-dd hh24:mi') UPDATE_DATE,
+    STATUS,
+    SECOND,
+    USER_PIC
+  </sql>
+  
+  <select id="queryCustomInfoByParamByContact" resultMap="CustomResultMap" parameterType="com.ps.result.presalemanage.CustomerVo">
+  	select
+     	t2.TAXPAYER_NAME,
+	    t2.TAXPAYER_NUMBER,
+	    t2.TAXPAYER_ADDRESS,
+	    t2.TAXPAYER_PHONE,
+	    t2.TAXPAYER_BANK,
+	    t2.TAXPAYER_ACCOUNT,
+	    t2.ID,
+	    t2.CUSTOM_SHORT_NAME,
+	    t2.CUSTOM_NAME,
+	    t2.CUSTOM_ADDRESS,
+	    t2.CUSTOM_CODE,
+	    t2.CONTACT_PHONE,
+	    t2.EMAIL,
+	    t2.REMARK,
+	    t2.CREATE_BY,
+	    to_char(t2.CREATE_DATE,'yyyy-mm-dd hh24:mi') CREATE_DATE,
+	    t2.UPDATE_BY,
+	    to_char(t2.UPDATE_DATE,'yyyy-mm-dd hh24:mi') UPDATE_DATE,
+	    t2.STATUS,
+	    t2.SECOND
+    from PMS_CONTACT t1 left join PMS_CUSTOMER t2 on t1.CUSTOMER_ID = t2.id
+    where t2.status=0
+    <if test="customShortName !=null and customShortName !=''">
+        and t2.CUSTOM_SHORT_NAME like '%'||#{customShortName}|| '%'
+    </if>
+    <if test="customName !=null and customName !=''">
+        and t1.CONTACT_NAME like '%'||#{customName}|| '%'
+    </if>
+    <if test="linkerName !=null and linkerName !=''">
+        and exists (select ID from PMS_CONTACT where CONTACT_NAME like '%'||#{linkerName} ||'%')
+    </if>
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by Create_date DESC
+		</otherwise>
+	</choose>
+  </select>
+  
+  <!-- 根据参数查询客户列表信息 -->
+  <select id="queryCustomInfoByParam" resultMap="CustomResultMap" parameterType="com.ps.result.presalemanage.CustomerVo" >
+    select
+     <include refid="Custom_Column_List" />
+    from PMS_CUSTOMER
+    where status=0
+    <if test="customShortName !=null and customShortName !=''">
+        and CUSTOM_SHORT_NAME like '%'||#{customShortName}|| '%'
+    </if>
+    <if test="customName !=null and customName !=''">
+        and CUSTOM_NAME like '%'||#{customName}|| '%'
+    </if>
+    <if test="linkerName !=null and linkerName !=''">
+        and exists (select ID from PMS_CONTACT where CONTACT_NAME like '%'||#{linkerName} ||'%')
+    </if>
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by Create_date DESC
+		</otherwise>
+	</choose>
+  </select>  
+  <!-- 根据ID查询客户列表信息 -->
+  <select id="queryCustomById" resultMap="CustomResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Custom_Column_List" />
+    from PMS_CUSTOMER
+    where ID =  #{id,jdbcType=DECIMAL }
+  </select>
+  
+  <!-- 新增客户信息 -->
+  <insert id="insertCustom" parameterType="com.ps.result.presalemanage.CustomerVo" >
+    insert into PMS_CUSTOMER
+    <trim prefix="(" suffix=")" suffixOverrides="," >	    
+	    ID,
+	    CUSTOM_SHORT_NAME,
+	    CUSTOM_NAME,
+	    CUSTOM_ADDRESS,
+	    CUSTOM_CODE,
+	    CONTACT_PHONE,
+	    EMAIL,
+	    REMARK,
+	    TAXPAYER_NAME,
+	    TAXPAYER_NUMBER,
+	    TAXPAYER_ADDRESS,
+	    TAXPAYER_PHONE,
+	    TAXPAYER_BANK,
+	    TAXPAYER_ACCOUNT,
+	    update_by,
+	    update_date,
+	    CREATE_BY,
+	    CREATE_DATE,
+	    STATUS,
+	    SECOND,
+	    USER_PIC
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       PMS_CUSTOMER_TB_SEQ.NEXTVAL,
+       #{customShortName,jdbcType=VARCHAR },
+       #{customName,jdbcType=VARCHAR },
+       #{customAddress,jdbcType=VARCHAR },
+       #{customCode,jdbcType=VARCHAR },
+       #{contactPhone,jdbcType=VARCHAR },
+       #{email,jdbcType=VARCHAR },
+       #{remark,jdbcType=VARCHAR },
+       #{taxpayerName,jdbcType=VARCHAR },
+       #{taxpayerNumber,jdbcType=VARCHAR },
+       #{taxpayerAddress,jdbcType=VARCHAR },
+       #{taxpayerPhone,jdbcType=VARCHAR },
+       #{taxpayerBank,jdbcType=VARCHAR },
+       #{taxpayerAccount,jdbcType=VARCHAR },
+       #{updateBy,jdbcType=VARCHAR },
+       sysdate,
+       #{createBy,jdbcType=VARCHAR },
+       sysdate,
+       0,
+       #{second,jdbcType=VARCHAR},
+       #{userPic,jdbcType=VARCHAR}
+    </trim>
+  </insert>
+  
+  <!-- 修改客户信息 -->
+  <update id="updateCustom" parameterType="com.ps.result.presalemanage.CustomerVo" >
+    update PMS_CUSTOMER
+    <set >
+   		TAXPAYER_NAME =  #{taxpayerName,jdbcType=VARCHAR },
+
+   		UPDATE_BY =  #{updateBy,jdbcType=VARCHAR },
+
+   		UPDATE_DATE = sysdate,
+
+   		TAXPAYER_NUMBER =  #{taxpayerNumber,jdbcType=VARCHAR },
+
+   		TAXPAYER_ADDRESS =  #{taxpayerAddress,jdbcType=VARCHAR },
+
+   		TAXPAYER_PHONE =  #{taxpayerPhone,jdbcType=VARCHAR },
+
+   		TAXPAYER_BANK =  #{taxpayerBank,jdbcType=VARCHAR },
+
+   		TAXPAYER_ACCOUNT =  #{taxpayerAccount,jdbcType=VARCHAR },
+
+   		CUSTOM_SHORT_NAME =  #{customShortName,jdbcType=VARCHAR },
+
+   		CUSTOM_NAME =  #{customName,jdbcType=VARCHAR },
+
+   		CUSTOM_ADDRESS =  #{customAddress,jdbcType=VARCHAR },
+
+   		CUSTOM_CODE =  #{customCode,jdbcType=VARCHAR },
+
+   		CONTACT_PHONE =  #{contactPhone,jdbcType=VARCHAR },
+
+   		EMAIL =  #{email,jdbcType=VARCHAR },
+
+   		REMARK =  #{remark,jdbcType=VARCHAR },	
+   		
+   		SECOND =  #{second,jdbcType=VARCHAR },
+   		
+   		USER_PIC = #{userPic,jdbcType=VARCHAR}
+   		
+   		
+    </set>
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 根据ID删除客户信息 -->
+  <delete id="deleteCustomById" parameterType="java.lang.String" >
+     update PMS_CUSTOMER set status=1
+    where ID =  #{id,jdbcType=DECIMAL}
+  </delete> 
+  
+  <!-- 获取全部客户信息 -->
+  <select id="getAllCustomerInfo" resultMap="CustomResultMap">
+  	select
+     <include refid="Custom_Column_List" />
+    from PMS_CUSTOMER
+  </select>
+  
+  <!-- 判断二字码是否存在 -->
+  <select id="querySecondByAccount" resultMap="CustomResultMap">
+  	select 
+	   <include refid="Custom_Column_List" />
+	from PMS_CUSTOMER t
+    where 1 = 1
+	AND LOWER(T.SECOND)=LOWER(#{second,jdbcType=VARCHAR}) and t.STATUS = 0
+  </select>
+  
+  <!-- 根据id查询客户联系人信息 -->
+  <select id="querySecondById"  resultMap="CustomResultMap">
+  	select 
+    <include refid="Custom_Column_List" />
+    from PMS_CUSTOMER
+    where ID =  #{id,jdbcType=DECIMAL } and STATUS = 0
+  </select>
+
+</mapper>

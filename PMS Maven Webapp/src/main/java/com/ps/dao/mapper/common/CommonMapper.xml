@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.common.CommonDao">
+
+	<!-- 编号自动生成规则 -->
+	<select id="getLastSerialNumberLike" resultType="java.lang.String"
+		parameterType="com.ps.result.common.SerialNumberVo">
+		<![CDATA[
+			SELECT ${columnName} FROM ${tableName} T 
+				WHERE T.${idColumn} = (SELECT MAX(${idColumn}) from ${tableName} T1 
+					WHERE T1.${columnName} IS NOT NULL AND 
+					T1.${columnName} LIKE concat(#{numPrefix},'%')
+				)			
+		 ]]>
+	</select>
+	
+	<!-- 上传文件 -->
+	<insert id="saveFile" parameterType="com.ps.result.common.UploadVo" >
+		insert into PMS_UPLOAD
+		<trim prefix="(" suffix=")" suffixOverrides="," >
+			ID,
+		    FILE_NAME,
+		    FILE_PATH,
+		    CREATE_BY,
+		    CREATE_DATE,
+		    CREATE_DEPT,
+		    TAB_INDEX,
+		    FILE_STATUS,
+		    DATA_ID,
+		    FILE_TYPE,
+		    PAGE_TYPE
+		</trim>
+   		<trim prefix="values (" suffix=")" suffixOverrides="," >
+			PMS_UPLOAD_TB_SEQ.NEXTVAL,
+			#{fuVo.fileName,jdbcType=VARCHAR},
+			#{fuVo.filePath,jdbcType=VARCHAR},
+			#{fuVo.createBy,jdbcType=VARCHAR},
+			sysdate,
+			#{fuVo.createUnit,jdbcType=VARCHAR},
+			#{fuVo.tabIndex,jdbcType=VARCHAR},
+			0,
+			#{fuVo.dataId,jdbcType=VARCHAR},
+			#{fuVo.fileType,jdbcType=VARCHAR},
+			#{fuVo.pageType,jdbcType=VARCHAR}
+		</trim>
+	</insert>
+	
+	<!-- 根据条件获取上传文件 -->
+	<select id="getAllFileUpload" resultType="com.ps.result.common.UploadVo" useCache="false">
+		SELECT ID id,
+	       FILE_NAME fileName,
+	       FILE_PATH filePath,
+	       TAB_INDEX tabIndex,
+	       FILE_STATUS fileStatus,
+	       DATA_ID dataId,
+	       FILE_TYPE fileType,
+	       PAGE_TYPE pageType
+	    FROM PMS_UPLOAD
+		where 1=1
+		<if test="pageType != null and pageType !=''">
+			AND PAGE_TYPE=#{pageType,jdbcType=VARCHAR} 
+		</if>
+		<if test="dataId != null and dataId !=''">
+			AND DATA_ID=#{dataId,jdbcType=VARCHAR} 
+		</if>
+		order by id
+	</select>
+	
+	<!-- 获取文件路径和文件名 -->
+	<select id="findFileUUIDNameById" resultType="com.ps.result.common.UploadVo" useCache="false">
+		select 
+			FILE_PATH filePath,
+			FILE_NAME fileName,
+			CREATE_BY createBy 
+		from PMS_UPLOAD 
+		where ID=#{fileId}
+	</select>
+	<!-- 删除文件 -->
+	<delete id="deleteFile">
+		delete from PMS_UPLOAD where ID=#{fileId}
+	</delete>
+	
+	<!-- 查询表中记录数 -->
+	<select id="countDataById" resultType="java.lang.Integer" 
+		parameterType="java.util.Map" useCache="false">
+		select count(1) from ${map.tableName} where ${map.idColumn} = #{map.id}
+	</select>
+	
+	<!-- 根据Id查询表中不可编辑状态数据记录数 -->
+	<select id="countDataStatus" resultType="java.lang.Integer" 
+		parameterType="java.util.Map" useCache="false">
+		 select count(1)
+		   from ${map.tableName}
+		  where ${map.idColumn} = #{map.id}
+		    and ${map.statusColumn} in (${map.status})
+	</select>
+	
+	<!-- 保存变更记录 -->
+	<insert id="saveChangeRecord" parameterType="com.ps.result.common.ChangeRecordVo" >
+		INSERT INTO PMS_CHANGE_RECORD
+		  (ID, CHANGE_TYPE, CHANGE_BY, CHANGE_DATE, CHANGE_CONTENT, CHANGE_ID)
+		VALUES
+		  (PMS_CHANGE_RECORD_SEQ.Nextval,
+		   #{changeType,jdbcType=VARCHAR},
+		   #{changeBy,jdbcType=VARCHAR},
+		   sysdate,
+		   #{changeContent,jdbcType=VARCHAR},
+		   #{changeId,jdbcType=VARCHAR})
+	</insert>
+	
+	<!-- 获取某功能对应的数据变更记录  -->
+	<select id="queryChangeRecordByParam" resultType="com.ps.result.common.ChangeRecordVo" 
+		parameterType="com.ps.result.common.ChangeRecordVo" >
+		SELECT F.ID id,
+	       F.CHANGE_TYPE changeType,
+	       F.CHANGE_ID changeId,
+	       F.CHANGE_CONTENT changeContent,
+	       F.CHANGE_BY changeBy,
+	       to_char(F.CHANGE_DATE,'yyyy-mm-dd hh24:mi') changeDate,
+	       F.CHANGE_BY_NAME changeByName,
+	       F.USER_PIC changeByIcon
+	    FROM (SELECT T1.ID,
+	               T1.CHANGE_TYPE,
+	               T1.CHANGE_ID,
+	               T1.CHANGE_CONTENT,
+	               T1.CHANGE_BY,
+	               T1.CHANGE_DATE,
+	               T2.USER_NAME CHANGE_BY_NAME,
+	               t2.dept_id,
+	               t2.USER_PIC
+	          FROM PMS_CHANGE_RECORD T1
+	          LEFT JOIN PMS_USER T2
+	            ON T1.CHANGE_BY = T2.ID) F
+	 	WHERE F.CHANGE_TYPE = #{changeType,jdbcType=VARCHAR}
+	    AND F.CHANGE_ID =#{changeId,jdbcType=VARCHAR}
+	    <if test="authDeptId != null and authDeptId != '' and authDeptId != 'null' ">
+		  AND (
+		  <foreach collection="authDeptId.split(',')" item="authDept" index="index"
+		      open="" close="" separator="or">
+		      (','||F.dept_id||',' like '%,'||#{authDept,jdbcType=VARCHAR}||',%')
+		  </foreach>
+		  )
+		</if>
+		<if test="authDeptId == null or authDeptId == '' or authDeptId == 'null' ">
+		  AND 1!=1
+		</if>
+	    order by F.CHANGE_DATE
+	</select>
+</mapper>

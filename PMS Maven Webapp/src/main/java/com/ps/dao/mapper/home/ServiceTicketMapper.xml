@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.home.ServiceTicketDao" >
+  <resultMap id="ServiceTicketResultMap" type="com.ps.result.home.ServiceTicketVo" >
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="FILENAME" property="filename" jdbcType="VARCHAR" />
+    <result column="FILETYPE" property="filetype" jdbcType="VARCHAR" />
+    <result column="UPLOADBY" property="uploadby" jdbcType="VARCHAR" />
+    <result column="UPLOADDATE" property="uploaddate" jdbcType="VARCHAR" />
+    <result column="FILE_PATH" property="filePath" jdbcType="VARCHAR" />
+    <result column="UPLOADBY_NAME" property="uploadbyName" jdbcType="VARCHAR" />
+  </resultMap>
+  
+  <!-- 根据参数查询服务单列表信息 -->
+  <select id="queryServiceTicketByParam" resultMap="ServiceTicketResultMap" parameterType="com.ps.result.home.ServiceTicketVo" >
+      select * from (
+	  SELECT T1.ID,
+	       FILENAME,
+	       FILETYPE,
+	       UPLOADBY,
+	       to_char(UPLOADDATE,'YYYY-MM-DD') UPLOADDATE,
+	       FILE_PATH,
+	       T2.USER_NAME UPLOADBY_NAME
+	  FROM PMS_SERVICE_TICKET T1
+	  LEFT JOIN PMS_USER T2
+	    ON T1.UPLOADBY = T2.ID
+	 )m
+	 where 1=1
+	 <if test="uploadbyName != null and uploadbyName != ''">
+	 	and m.UPLOADBY_NAME LIKE '%'||#{uploadbyName,jdbcType=VARCHAR}||'%'
+	 </if>
+	 <if test="filename != null and filename != ''">
+	 	and m.FILENAME LIKE '%'||#{filename,jdbcType=VARCHAR}||'%'
+	 </if>
+	 <if test="uploadBeginDate != null and uploadBeginDate != ''">
+	 	and to_date(m.UPLOADDATE,'YYYY-MM-DD') >= to_date(#{uploadBeginDate,jdbcType=VARCHAR},'YYYY-MM-DD')
+	 </if>
+	 <if test="uploadEndDate != null and uploadEndDate != ''">
+	 	and to_date(m.UPLOADDATE,'YYYY-MM-DD') &lt;= to_date(#{uploadEndDate,jdbcType=VARCHAR},'YYYY-MM-DD')
+	 </if>   
+	 <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by UPLOADDATE
+		</otherwise>
+	 </choose>
+  </select>
+  
+  <!-- 根据ID查询服务单信息 -->
+  <select id="queryServiceTicketById" resultMap="ServiceTicketResultMap">
+  	 select * from (
+	  SELECT T1.ID,
+	       FILENAME,
+	       FILETYPE,
+	       UPLOADBY,
+	       to_char(UPLOADDATE,'YYYY-MM-DD') UPLOADDATE,
+	       FILE_PATH,
+	       T2.USER_NAME UPLOADBY_NAME
+	  FROM PMS_SERVICE_TICKET T1
+	  LEFT JOIN PMS_USER T2
+	    ON T1.UPLOADBY = T2.ID
+	 )m
+	 where 1=1
+	 and m.ID =  #{id,jdbcType=DECIMAL }
+  </select>
+  
+  <!-- 新增服务单信息 -->
+  <insert id="insertServiceTicket" parameterType="com.ps.result.home.ServiceTicketVo" >
+    insert into PMS_SERVICE_TICKET
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+	    ID,
+	    FILENAME,
+	    FILETYPE,
+	    UPLOADBY,
+	    UPLOADDATE,
+	    FILE_PATH,
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       PMS_SERVICE_TICKET_TB_SEQ.Nextval,
+       #{filename,jdbcType=VARCHAR },
+       #{filetype,jdbcType=VARCHAR },
+       #{uploadby,jdbcType=VARCHAR },
+       sysdate,
+       #{filePath,jdbcType=VARCHAR },
+    </trim>
+  </insert>
+  
+  <!-- 根据ID删除服务单信息 -->
+  <delete id="deleteServiceTicketById" parameterType="java.lang.String" >
+    delete from PMS_SERVICE_TICKET
+    where ID =  #{id,jdbcType=DECIMAL }
+  </delete>
+</mapper>

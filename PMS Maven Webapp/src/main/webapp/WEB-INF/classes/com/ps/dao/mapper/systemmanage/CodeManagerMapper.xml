@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.systemmanage.CodeManagerDao" >
+  <resultMap id="CodeResultMap" type="com.ps.result.systemmanage.CodeVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="CODE_ZH" property="codeZh" jdbcType="VARCHAR" />
+    <result column="CODE_EN" property="codeEn" jdbcType="VARCHAR" />
+    <result column="CODE_VALUE" property="codeValue" jdbcType="VARCHAR" />
+    <result column="CODE_TYPE" property="codeType" jdbcType="VARCHAR" />
+    <result column="CODE_FLAG" property="codeFlag" jdbcType="VARCHAR" />
+    <result column="CODE_REMARK" property="codeRemark" jdbcType="VARCHAR" />
+    <result column="UPDATE_BY" property="updateBy" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="UPDATE_DATE" property="updateDate" jdbcType="VARCHAR" />
+    <result column="CODE_TYPE_NAME" property="codeTypeName" jdbcType="VARCHAR" />
+  </resultMap>
+  
+  <!--查询字段 所有的表字段-->
+  <sql id="Code_Column_List" >
+    ID,
+    CODE_ZH,
+    CODE_EN,
+    CODE_VALUE,
+    CODE_TYPE,
+    CODE_FLAG,
+    CODE_REMARK,
+    UPDATE_BY,
+    CREATE_BY,
+    CREATE_DATE,
+    UPDATE_DATE
+  </sql>
+  
+  <!-- 根据参数查询基础数据维护信息-->
+  <select id="queryCodeInfoByParam" resultMap="CodeResultMap" parameterType="com.ps.result.systemmanage.CodeVo" >
+    select
+    <include refid="Code_Column_List" />,(select t2.code_zh from pms_code t2 WHERE t2.code_type=t1.code_type AND t2.whether_parent='0') CODE_TYPE_NAME
+    from PMS_CODE t1
+    Where 1=1
+    <if test="codeZh !=null and codeZh !=''">
+    	AND code_zh LIKE '%'||#{codeZh,jdbcType=VARCHAR }||'%'
+    </if>
+    <if test="codeEn !=null and codeEn !=''">
+    	AND CODE_EN LIKE '%'||#{codeEn,jdbcType=VARCHAR }||'%'
+    </if>
+    <if test="codeType !=null and codeType !=''">
+    	AND ','||#{codeType,jdbcType=VARCHAR }||',' LIKE '%,'||CODE_TYPE||',%'
+    </if>
+    <if test="whetherParent !=null and whetherParent !=''">
+    	AND WHETHER_PARENT = #{whetherParent,jdbcType=VARCHAR }
+    </if>
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by CODE_VALUE
+		</otherwise>
+	</choose>
+  </select>
+  
+  <!-- 根据ID查询基础数据维护信息 -->
+  <select id="queryCodeById" resultMap="CodeResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Code_Column_List" />
+    from PMS_CODE
+    where ID =  #{id,jdbcType=DECIMAL }
+  </select>
+  
+  <!-- 新增基础数据维护信息 -->
+  <insert id="insertCode" parameterType="com.ps.result.systemmanage.CodeVo" >
+    insert into PMS_CODE
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+	    ID,
+	    CODE_ZH,
+	    CODE_EN,
+	    CODE_VALUE,
+	    CODE_TYPE,
+	    CODE_FLAG,
+	    CODE_REMARK,
+	    UPDATE_BY,
+	    CREATE_BY,
+	    CREATE_DATE,
+	    UPDATE_DATE,
+	    WHETHER_PARENT
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       pms_code_tb_seq.nextval,
+       #{codeZh,jdbcType=VARCHAR },
+       #{codeEn,jdbcType=VARCHAR },
+       #{codeValue,jdbcType=VARCHAR },
+       #{codeType,jdbcType=VARCHAR },
+       0,
+       #{codeRemark,jdbcType=VARCHAR },
+       #{updateBy,jdbcType=VARCHAR },
+       #{createBy,jdbcType=VARCHAR },
+       sysdate,
+       sysdate,
+       '1'
+    </trim>
+  </insert>
+  
+  <!-- 根据ID修改基础数据维护信息-->
+  <update id="updateCode" parameterType="com.ps.result.systemmanage.CodeVo" >
+    update PMS_CODE
+    set
+   		CODE_ZH =  #{codeZh,jdbcType=VARCHAR },
+   		CODE_EN =  #{codeEn,jdbcType=VARCHAR },
+   		CODE_VALUE =  #{codeValue,jdbcType=VARCHAR },
+   		CODE_TYPE =  #{codeType,jdbcType=VARCHAR },
+   		CODE_REMARK =  #{codeRemark,jdbcType=VARCHAR },
+   		UPDATE_BY =  #{updateBy,jdbcType=VARCHAR },
+   		UPDATE_DATE = sysdate
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 根据参数查询有效基础数据维护信息 -->
+  <select id="getValidCodeInfo" resultMap="CodeResultMap">
+  	select
+    <include refid="Code_Column_List" />
+    from PMS_CODE
+    where whether_parent='1'
+    order by to_number(CODE_VALUE)
+  </select>
+  
+  <!-- 根据码表类型查询当前码值是否重复 -->
+  <select id="getCodeInfoByCodeType" parameterType="com.ps.result.systemmanage.CodeVo"  resultMap="CodeResultMap">
+  	SELECT 
+  	<include refid="Code_Column_List" />
+  	FROM pms_code t
+	WHERE 1=1
+	AND t.code_type=#{codeType,jdbcType=DECIMAL}
+	<if test="id !=null and id !=''">
+		AND t.ID !=#{id,jdbcType=DECIMAL}
+	</if>
+	<if test="codeValue !=null and codeValue !=''">
+		AND t.code_value=#{codeValue}
+	</if>
+	and t.whether_parent='1'
+  </select>
+  
+  <!-- 根据码表ID更新码表状态 -->
+  <update id="updateCodeFlag">
+  	UPDATE pms_code set code_flag=#{codeFlag,jdbcType=VARCHAR } WHERE ID=#{codeId,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 根据数据类型查询基础数据维护信息 -->
+  <select id="getCodeInfoByType" resultMap="CodeResultMap" >
+  	select 
+    <include refid="Code_Column_List" />
+    from PMS_CODE
+    where CODE_TYPE =  #{codeType,jdbcType=VARCHAR }
+    and whether_parent='1'
+  </select>
+  
+  <!-- 根据参数查询基础数据维护信息-->
+  <select id="queryParentCode" resultMap="CodeResultMap" parameterType="com.ps.result.systemmanage.CodeVo" >
+    select
+    <include refid="Code_Column_List" />
+    from PMS_CODE
+    Where 1=1
+    AND WHETHER_PARENT = #{whetherParent,jdbcType=VARCHAR }
+  </select>
+  
+  <!-- 根据码表类型查询下一个码值 -->
+  <select id="getNextCodeValueByType" resultType="java.lang.Integer" >
+  	SELECT NVL(max(to_number(code_value))+1,0) FROM pms_code WHERE code_type=#{codeType,jdbcType=VARCHAR} AND whether_parent='1'
+  </select>
+</mapper>

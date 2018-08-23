@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.taskManage.TaskManagerDao" >
+  <!-- 任务映射实体类 -->
+  <resultMap id="TaskResultMap" type="com.ps.result.taskmanage.TaskVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="ORIGINATOR" property="originator" jdbcType="VARCHAR" />
+    <result column="REQ_FINITION_DATE" property="reqFinitionDate" jdbcType="VARCHAR" />
+    <result column="EMERGENCY" property="emergency" jdbcType="VARCHAR" />
+    <result column="TASK_DESC" property="taskDesc" jdbcType="VARCHAR" />
+    <result column="FEEDBACK" property="feedback" jdbcType="VARCHAR" />
+    <result column="IS_CLOSE" property="isClose" jdbcType="VARCHAR" />
+    <result column="CLOSE_DATE" property="closeDate" jdbcType="VARCHAR" />
+    <result column="REMARKS" property="remarks" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="UPDATE_BY" property="updateBy" jdbcType="VARCHAR" />
+    <result column="UPDATE_DATE" property="updateDate" jdbcType="VARCHAR" />
+    <result column="STATUS" property="status" jdbcType="VARCHAR" />
+    <result column="RECIPIENT" property="recipient" jdbcType="VARCHAR" />
+    <result column="SEND_STATUS" property="sendStatus" jdbcType="VARCHAR" />
+    <result column="RECIPIENT_NAME" property="recipientName" jdbcType="VARCHAR" />
+    <result column="ORIGINATOR_NAME" property="originatorName" jdbcType="VARCHAR" />
+  </resultMap>
+  <!--查询字段 所有的表字段-->
+  <sql id="Task_Column_List" >
+    ID,
+    ORIGINATOR,
+    to_char(REQ_FINITION_DATE,'YYYY-MM-DD') REQ_FINITION_DATE,
+    EMERGENCY,
+    TASK_DESC,
+    FEEDBACK,
+    IS_CLOSE,
+    to_char(CLOSE_DATE,'YYYY-MM-DD') CLOSE_DATE,
+    REMARKS,
+    CREATE_BY,
+    to_char(CREATE_DATE,'YYYY-MM-DD') CREATE_DATE,
+    UPDATE_BY,
+    to_char(UPDATE_DATE,'YYYY-MM-DD') UPDATE_DATE,
+    STATUS,
+    SEND_STATUS,
+    RECIPIENT_NAME,
+    ORIGINATOR_NAME,
+    RECIPIENT
+  </sql>
+  
+  <!-- 根据参数查询任务列表信息 -->
+  <select id="queryTaskInfoByParam" resultMap="TaskResultMap" parameterType="com.ps.result.taskmanage.TaskVo" >
+    select
+    <include refid="Task_Column_List" />
+    from (
+    	SELECT 
+	    t1.ID,
+	    t1.ORIGINATOR,
+		t1.RECIPIENT,
+	    t1.REQ_FINITION_DATE,
+	    t1.EMERGENCY,
+	    t1.TASK_DESC,
+	    t1.FEEDBACK,
+	    t1.IS_CLOSE,
+	    t1.CLOSE_DATE,
+	    t1.REMARKS,
+	    t1.CREATE_BY,
+	    t1.CREATE_DATE,
+	    t1.UPDATE_BY,
+	    t1.UPDATE_DATE,
+	    t1.STATUS,
+	    t1.SEND_STATUS,
+		t2.user_name ORIGINATOR_NAME,
+		t3.user_name RECIPIENT_NAME
+		FROM pms_task t1 
+		LEFT JOIN pms_user t2 ON t1.originator=t2.id
+		LEFT JOIN pms_user t3 ON t1.recipient=t3.id
+		where 1=1
+		<!-- 查看个人 -->
+	    <if test="authority == 1">
+	    	and t2.id = #{authUserId,jdbcType=VARCHAR }
+	    </if>
+	    <!-- 查看部门 -->
+	    <if test="authority == 2">
+	    	and t2.dept_id in (${authDeptId})
+	    </if>
+    )f
+    where 1=1
+    and f.status=0
+    <if test="originatorName != null and originatorName != ''">
+    	and f.ORIGINATOR_NAME like '%'||#{originatorName,jdbcType=VARCHAR }||'%'
+    </if>
+    <if test="recipientName != null and recipientName != ''">
+    	and f.RECIPIENT_NAME like '%'||#{recipientName,jdbcType=VARCHAR }||'%'
+    </if>
+    <if test="emergency != null and emergency != ''">
+    	and f.EMERGENCY IN (${emergency})
+    </if>
+    <if test="taskDesc != null and taskDesc != ''">
+    	and f.TASK_DESC like '%'||#{taskDesc,jdbcType=VARCHAR }||'%'
+    </if>
+    <if test="isClose != null and isClose != ''">
+    	and f.IS_CLOSE IN (${isClose})
+    </if>
+    <if test="reqFinitionBeginDate != null and reqFinitionBeginDate != ''">
+    	and f.REQ_FINITION_DATE>=to_date(#{reqFinitionBeginDate,jdbcType=VARCHAR },'YYYY-MM-DD')
+    </if>
+    <if test="reqFinitionEndDate != null and reqFinitionEndDate != ''">
+    	and to_date(#{reqFinitionEndDate,jdbcType=VARCHAR },'YYYY-MM-DD')>=f.REQ_FINITION_DATE
+    </if>
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by f.CREATE_DATE
+		</otherwise>
+	</choose>
+  </select>
+  
+  <!-- 根据ID查询任务列表信息 -->
+  <select id="queryTaskById" resultMap="TaskResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Task_Column_List" />
+    from (
+    	SELECT 
+	    t1.ID,
+	    t1.ORIGINATOR,
+		t1.RECIPIENT,
+	    t1.REQ_FINITION_DATE,
+	    t1.EMERGENCY,
+	    t1.TASK_DESC,
+	    t1.FEEDBACK,
+	    t1.IS_CLOSE,
+	    t1.CLOSE_DATE,
+	    t1.REMARKS,
+	    t1.CREATE_BY,
+	    t1.CREATE_DATE,
+	    t1.UPDATE_BY,
+	    t1.UPDATE_DATE,
+	    t1.STATUS,
+	    t1.SEND_STATUS,
+		t2.user_name ORIGINATOR_NAME,
+		t3.user_name RECIPIENT_NAME
+		FROM pms_task t1 
+		LEFT JOIN pms_user t2 ON t1.originator=t2.id
+		LEFT JOIN pms_user t3 ON t1.recipient=t3.id
+    )f
+    where f.ID =  #{id,jdbcType=DECIMAL }
+  </select>
+  
+  <!-- 新增任务信息 -->
+  <insert id="insertTask" parameterType="com.ps.result.taskmanage.TaskVo" >
+    insert into PMS_TASK
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+	    ID,
+	    ORIGINATOR,
+	    REQ_FINITION_DATE,
+	    EMERGENCY,
+	    TASK_DESC,
+	    FEEDBACK,
+	    IS_CLOSE,
+	    CLOSE_DATE,
+	    REMARKS,
+	    CREATE_BY,
+	    CREATE_DATE,
+	    UPDATE_BY,
+	    UPDATE_DATE,
+	    STATUS,
+	    RECIPIENT,
+	    SEND_STATUS
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       PMS_TASK_TB_SEQ.NEXTVAL,
+       #{originator,jdbcType=VARCHAR },
+       to_date(#{reqFinitionDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+       #{emergency,jdbcType=VARCHAR },
+       #{taskDesc,jdbcType=VARCHAR },
+       #{feedback,jdbcType=VARCHAR },
+       1,
+       to_date(#{closeDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+       #{remarks,jdbcType=VARCHAR },
+       #{createBy,jdbcType=VARCHAR },
+       sysdate,
+       #{updateBy,jdbcType=VARCHAR },
+       sysdate,
+       0,
+       #{recipient,jdbcType=VARCHAR },
+       #{sendStatus,jdbcType=VARCHAR }
+    </trim>
+  </insert>
+  
+  <!-- 修改任务信息 -->
+  <update id="updateTask" parameterType="com.ps.result.taskmanage.TaskVo" >
+    update PMS_TASK
+    set
+   		ORIGINATOR =  #{originator,jdbcType=VARCHAR },
+   		<if test="reqFinitionDate != null and reqFinitionDate != '' and reqFinitionDate !='null'">
+   			REQ_FINITION_DATE =  to_date(#{reqFinitionDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+   		</if>
+   		<if test="reqFinitionDate == null or reqFinitionDate == '' or reqFinitionDate =='null'">
+   			REQ_FINITION_DATE =  null,
+   		</if>
+   		EMERGENCY =  #{emergency,jdbcType=VARCHAR },
+   		TASK_DESC =  #{taskDesc,jdbcType=VARCHAR },
+   		UPDATE_BY =  #{updateBy,jdbcType=VARCHAR },
+   		UPDATE_DATE = sysdate,
+   		RECIPIENT =  #{recipient,jdbcType=VARCHAR }
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 修改任务有效性 -->
+  <update id="updateStatusById" parameterType="java.lang.String" >
+    update PMS_TASK set STATUS=1
+    where ID =  #{id,jdbcType=DECIMAL }
+  </update>
+  
+  <!-- 修改任务发送状态 -->
+  <update id="updateSendStatusById" parameterType="java.lang.String" >
+  	update PMS_TASK set SEND_STATUS=#{sendStatus,jdbcType=VARCHAR }
+    where ID =  #{id,jdbcType=DECIMAL }
+  </update>
+  
+  <!-- 根据参数查询我的任务列表信息 -->
+  <select id="queryMyTaskInfoByParam" resultMap="TaskResultMap" parameterType="com.ps.result.taskmanage.TaskVo" >
+    select
+    <include refid="Task_Column_List" />
+    from (
+    	SELECT 
+	    t1.ID,
+	    t1.ORIGINATOR,
+		t1.RECIPIENT,
+	    t1.REQ_FINITION_DATE,
+	    t1.EMERGENCY,
+	    t1.TASK_DESC,
+	    t1.FEEDBACK,
+	    t1.IS_CLOSE,
+	    t1.CLOSE_DATE,
+	    t1.REMARKS,
+	    t1.CREATE_BY,
+	    t1.CREATE_DATE,
+	    t1.UPDATE_BY,
+	    t1.UPDATE_DATE,
+	    t1.STATUS,
+	    t1.SEND_STATUS,
+		t2.user_name ORIGINATOR_NAME,
+		t3.user_name RECIPIENT_NAME
+		FROM pms_task t1 
+		LEFT JOIN pms_user t2 ON t1.originator=t2.id
+		LEFT JOIN pms_user t3 ON t1.recipient=t3.id
+    )f
+    where 1=1
+    and f.status=0
+    and f.SEND_STATUS=1
+    <if test="originatorName != null and originatorName != ''">
+    	and f.ORIGINATOR_NAME like '%'||#{originatorName,jdbcType=VARCHAR }||'%'
+    </if>
+    <if test="recipient != null and recipient != ''">
+    	and f.RECIPIENT = #{recipient,jdbcType=VARCHAR }
+    </if>
+    <if test="emergency != null and emergency != ''">
+    	and f.EMERGENCY IN (${emergency})
+    </if>
+    <if test="taskDesc != null and taskDesc != ''">
+    	and f.TASK_DESC like '%'||#{taskDesc,jdbcType=VARCHAR }||'%'
+    </if>
+    <if test="isClose != null and isClose != ''">
+    	and f.IS_CLOSE IN (${isClose})
+    </if>
+    <if test="reqFinitionBeginDate != null and reqFinitionBeginDate != ''">
+    	and f.REQ_FINITION_DATE>=to_date(#{reqFinitionBeginDate,jdbcType=VARCHAR },'YYYY-MM-DD')
+    </if>
+    <if test="reqFinitionEndDate != null and reqFinitionEndDate != ''">
+    	and to_date(#{reqFinitionEndDate,jdbcType=VARCHAR },'YYYY-MM-DD')>=f.REQ_FINITION_DATE
+    </if>
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by f.CREATE_DATE
+		</otherwise>
+	</choose>
+  </select>
+  
+  <!-- 修改我的任务信息 -->
+  <update id="updateMyTask" parameterType="com.ps.result.taskmanage.TaskVo" >
+    update PMS_TASK
+    set
+   		FEEDBACK =  #{feedback,jdbcType=VARCHAR },
+   		IS_CLOSE =  #{isClose,jdbcType=VARCHAR },
+   		<if test="closeDate != null and closeDate != '' and closeDate !='null'">
+   			CLOSE_DATE =  to_date(#{closeDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+   		</if>
+   		<if test="closeDate == null or closeDate == '' or closeDate =='null'">
+   			CLOSE_DATE =  null,
+   		</if>
+   		REMARKS =  #{remarks,jdbcType=VARCHAR },
+   		UPDATE_BY =  #{updateBy,jdbcType=VARCHAR },
+   		UPDATE_DATE = sysdate
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+</mapper>
