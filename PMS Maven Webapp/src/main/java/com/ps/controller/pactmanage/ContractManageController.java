@@ -24,7 +24,7 @@ import com.ps.service.contractmanage.IContractManageService;
 
 /** 
  * @Description: 合同维护
- * @author：		raomingyi
+ * @author：		Jasonzhang
  * @date：		2018-03-13
  */
 @Controller
@@ -42,7 +42,7 @@ public class ContractManageController extends BaseController {
 	
 	/**
 	 * @Description: 进入合同维护主页
-	 * @author:      raomingyi
+	 * @author:      Jasonzhang
 	 * @param:       request
 	 * @return:      URL
 	 * @date:        2018-03-13
@@ -56,7 +56,7 @@ public class ContractManageController extends BaseController {
 	
 	/**
 	 * @Description: 查询合同维护信息
-	 * @author:      raomingyi
+	 * @author:      Jasonzhang
 	 * @param:       ContractVo
 	 * @return:      ListRange数据实体类
 	 * @date:        2018-03-13
@@ -78,7 +78,7 @@ public class ContractManageController extends BaseController {
 	 * @Description: 进入合同编辑/新增/查看界面
 	 * @param  
 	 * @return URL
-	 * @author raomingyi
+	 * @author Jasonzhang
 	 * @date:  2018-03-13
 	 */
 	@OperateLog(remark="进入合同编辑信息页面",cateGory="合同维护",cateGoryType=GlobalConstants.CATEGORYTYPE_R00301,
@@ -97,7 +97,7 @@ public class ContractManageController extends BaseController {
 	
 	/**
 	 * @Description: 保存
-	 * @author:      raomingyi
+	 * @author:      Jasonzhang
 	 * @param:       ContractVo
 	 * @return:      OperateStatusVo返回信息
 	 * @date:        2018-03-13
@@ -114,7 +114,7 @@ public class ContractManageController extends BaseController {
 	
 	/**
 	 * @Description: 删除合同信息
-	 * @author:      raomingyi
+	 * @author:      Jasonzhang
 	 * @param:       id
 	 * @return:      OperateStatusVo返回信息
 	 * @date:        2018-03-13
@@ -131,7 +131,7 @@ public class ContractManageController extends BaseController {
 	}
 	/**
 	 * @Description: 提交合同
-	 * @author:      raomingyi
+	 * @author:      Jasonzhang
 	 * @param:       id
 	 * @return:      OperateStatusVo返回信息
 	 * @date:        2018-03-13
@@ -149,7 +149,7 @@ public class ContractManageController extends BaseController {
 	
 	/**
 	 * @Description: 进入合同选择界面
-	 * @author:      raomingyi
+	 * @author:      Jasonzhang
 	 * @param:       request
 	 * @return:      URL
 	 * @date:        2018-03-13
