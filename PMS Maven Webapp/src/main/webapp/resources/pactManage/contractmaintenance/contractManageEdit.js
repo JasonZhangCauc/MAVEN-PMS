@@ -1,6 +1,6 @@
 /*
  *  @Description：合同编辑/新增界面JS
- *  @author：               raomingyi
+ *  @author：               Jasonzhang
  *  @date：                    2018年3月7日
  */
 ContractEdit={
