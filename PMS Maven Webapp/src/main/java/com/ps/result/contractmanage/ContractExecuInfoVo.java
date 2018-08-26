@@ -4,7 +4,7 @@ import com.ps.result.common.PageParaVo;
 
 /** 
  * @Description: 合同跟踪VO
- * @author：		raomingyi
+ * @author：		Jasonzhang
  * @date：		2018-03-21 
  */
 public class ContractExecuInfoVo extends PageParaVo<ContractExecuInfoVo>{
