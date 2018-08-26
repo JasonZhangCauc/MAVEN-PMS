@@ -9,7 +9,7 @@ import com.ps.result.contractmanage.ContractVo;
 
 /**
  * @Description:    合同执行情况DAO接口 
- * @author:         raomingyi
+ * @author:         Jasonzhang
  * @date:           2018-03-21
  */
 public interface ContractExecuInfoDao{
@@ -17,7 +17,7 @@ public interface ContractExecuInfoDao{
 	
 	/**
 	 * @Description: 根据参数查询合同执行情况信息
-	 * @author:      raomingyi
+	 * @author:      Jasonzhang
 	 * @param:       ContractVo
 	 * @return:      ContractVo 列表信息
 	 * @date:        2018-03-21
@@ -26,7 +26,7 @@ public interface ContractExecuInfoDao{
 	
 	/**
 	 * @Description: 根据ID查询合同执行情况信息
-	 * @author:      raomingyi
+	 * @author:      Jasonzhang
 	 * @param:       id
 	 * @return:      ContractVo
 	 * @date:        2018-03-21
@@ -35,7 +35,7 @@ public interface ContractExecuInfoDao{
 	
 	/**
 	 * @Description: 根据参数查询合同跟踪信息
-	 * @author:      raomingyi
+	 * @author:      Jasonzhang
 	 * @param:       ContractExecuInfoVo
 	 * @return:      ContractExecuInfoVo 列表信息
 	 * @date:        2018-03-21
@@ -44,7 +44,7 @@ public interface ContractExecuInfoDao{
 	
 	/**
 	 * @Description: 根据ID查询合同跟踪信息
-	 * @author:      raomingyi
+	 * @author:      Jasonzhang
 	 * @param:       id
 	 * @return:      ContractExecuInfoVo
 	 * @date:        2018-03-21
@@ -53,7 +53,7 @@ public interface ContractExecuInfoDao{
 	
 	/**
 	 * @Description: 新增合同跟踪信息
-	 * @author:      raomingyi
+	 * @author:      Jasonzhang
 	 * @param:       ContractExecuInfoVo
 	 * @date:        2018-03-21
 	 */
@@ -61,7 +61,7 @@ public interface ContractExecuInfoDao{
 	
 	/**
 	 * @Description: 修改合同跟踪信息
-	 * @author:      raomingyi
+	 * @author:      Jasonzhang
 	 * @param:       ContractExecuInfoVo
 	 * @date:        2018-03-21
 	 */
@@ -69,7 +69,7 @@ public interface ContractExecuInfoDao{
 	
 	/**
 	 * @Description: 删除合同跟踪信息
-	 * @author:      raomingyi
+	 * @author:      Jasonzhang
 	 * @param:       id
 	 * @date:        2018-03-21
 	 */
