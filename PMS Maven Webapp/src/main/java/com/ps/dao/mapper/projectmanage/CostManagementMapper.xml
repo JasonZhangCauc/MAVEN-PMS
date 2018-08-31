@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.projectmanage.CostManagementDao" >
+  <resultMap id="CostResultMap" type="com.ps.result.projectmanage.CostManagementVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="SUPPLIER_ID" property="supplierId" jdbcType="VARCHAR" />
+    <result column="PRICE_TYPE" property="priceType" jdbcType="VARCHAR" />
+    <result column="PRICE" property="price" jdbcType="VARCHAR" />
+    <result column="CURRENCY" property="currency" jdbcType="VARCHAR" />
+    <result column="BEGIN_DATE" property="beginDate" jdbcType="VARCHAR" />
+    <result column="END_DATE" property="endDate" jdbcType="VARCHAR" />
+    <result column="REMARK" property="remark" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="UPDATE_BY" property="updateBy" jdbcType="VARCHAR" />
+    <result column="UPDATE_DATE" property="updateDate" jdbcType="VARCHAR" />
+  </resultMap>
+  <!--查询字段 所有的表字段-->
+  <sql id="Base_Column_List" >
+    ID,
+    SUPPLIER_ID,
+    PRICE_TYPE,
+    PRICE,
+    CURRENCY,
+    to_char(BEGIN_DATE,'YYYY-MM-DD') BEGIN_DATE,
+    to_char(END_DATE,'YYYY-MM-DD') END_DATE,
+    REMARK,
+    CREATE_BY,
+    to_char(CREATE_DATE,'YYYY-MM-DD') CREATE_DATE,
+    UPDATE_BY,
+    to_char(UPDATE_DATE,'YYYY-MM-DD') UPDATE_DATE
+  </sql>
+  
+  <!-- 查询单价管理信息 -->
+  <select id="queryCostManagementInfoByParam" resultMap="CostResultMap" parameterType="com.ps.result.projectmanage.CostManagementVo" >
+    select
+    <include refid="Base_Column_List" />
+    from PMS_PROJECT_PRICE
+    where 1=1
+    <if test="supplierId != null and supplierId != '' and supplierId!='null'">
+	  AND SUPPLIER_ID IN (${supplierId})
+    </if>
+    <if test="priceType != null and priceType != '' and priceType!='null'">
+	  AND PRICE_TYPE IN (${priceType})
+    </if>
+    <if test="startTime != null and startTime != '' and endTime != null and endTime != '' ">
+    	<![CDATA[
+	  		AND ((to_date(#{startTime,jdbcType=VARCHAR },'YYYY-MM-DD') >= BEGIN_DATE 
+	  		AND to_date(#{startTime,jdbcType=VARCHAR },'YYYY-MM-DD') <= END_DATE)
+	  		OR (to_date(#{endTime,jdbcType=VARCHAR },'YYYY-MM-DD') >= BEGIN_DATE 
+	  		AND to_date(#{endTime,jdbcType=VARCHAR },'YYYY-MM-DD') <= END_DATE))
+		]]>
+    </if>
+    <if test="startTime != null and startTime != '' and (endTime == null or endTime == '')">
+    	<![CDATA[
+    		AND to_date(#{startTime,jdbcType=VARCHAR },'YYYY-MM-DD') >= BEGIN_DATE 
+	  		AND to_date(#{startTime,jdbcType=VARCHAR },'YYYY-MM-DD') <= END_DATE
+    	]]>
+    </if>
+    <if test="endTime != null and endTime != '' and (startTime == null or startTime == '')">
+       	<![CDATA[
+       		AND to_date(#{endTime,jdbcType=VARCHAR },'YYYY-MM-DD') >= BEGIN_DATE 
+	  		AND to_date(#{endTime,jdbcType=VARCHAR },'YYYY-MM-DD') <= END_DATE
+       	]]>
+    </if>
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by CREATE_DATE DESC
+		</otherwise>
+	</choose>
+   </select>
+  
+  <!-- 根据ID查询单价数据信息 -->
+  <select id="queryCostManagementById" resultMap="CostResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from PMS_PROJECT_PRICE
+    where ID =  #{id,jdbcType=DECIMAL }
+  </select>
+  
+  <!-- 保存单价管理信息 -->
+  <insert id="insertCostManagement" parameterType="com.ps.result.projectmanage.CostManagementVo" >
+    insert into PMS_PROJECT_PRICE
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+	    ID,
+	    SUPPLIER_ID,
+	    PRICE_TYPE,
+	    PRICE,
+	    CURRENCY,
+	    BEGIN_DATE,
+	    END_DATE,
+	    REMARK,
+	    CREATE_BY,
+	    CREATE_DATE,
+	    UPDATE_BY,
+	    UPDATE_DATE
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       PMS_PROJECT_PRICE_TB_SEQ.NEXTVAL,
+       #{supplierId,jdbcType=VARCHAR },
+       #{priceType,jdbcType=VARCHAR },
+       #{price,jdbcType=VARCHAR },
+       #{currency,jdbcType=VARCHAR },
+       TO_DATE(#{beginDate,jdbcType=VARCHAR },'yyyy-MM-dd'),
+       TO_DATE(#{endDate,jdbcType=VARCHAR },'yyyy-MM-dd'),
+       #{remark,jdbcType=VARCHAR },
+       #{createBy,jdbcType=VARCHAR },
+       sysdate,
+       #{updateBy,jdbcType=VARCHAR },
+       sysdate
+    </trim>
+  </insert>
+  
+  <!-- 修改单价管理信息 -->
+  <update id="updateCostManagement" parameterType="com.ps.result.projectmanage.CostManagementVo" >
+    update PMS_PROJECT_PRICE
+     set
+   		SUPPLIER_ID =  #{supplierId,jdbcType=VARCHAR },
+   		PRICE_TYPE =  #{priceType,jdbcType=VARCHAR },
+   		PRICE =  #{price,jdbcType=VARCHAR },
+   		CURRENCY =  #{currency,jdbcType=VARCHAR },
+   		BEGIN_DATE =  to_date(#{beginDate,jdbcType=VARCHAR },'yyyy-MM-dd'),
+   		END_DATE =  to_date(#{endDate,jdbcType=VARCHAR },'yyyy-MM-dd'),
+   		REMARK =  #{remark,jdbcType=VARCHAR },
+   		UPDATE_BY =  #{updateBy,jdbcType=VARCHAR },
+   		UPDATE_DATE =  sysdate
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 根据ID删除单价信息 -->
+  <delete id="deleteCostManagementById" parameterType="java.lang.String" >
+    delete from PMS_PROJECT_PRICE
+    where ID =  #{id,jdbcType=DECIMAL }
+  </delete>
+</mapper>

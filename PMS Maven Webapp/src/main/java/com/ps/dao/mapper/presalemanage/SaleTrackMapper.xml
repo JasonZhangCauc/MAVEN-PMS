@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.presalemanage.SaleTrackDao" >
+  <!-- 销售跟踪映射列表 -->
+  <resultMap id="SaleTrackResultMap" type="com.ps.result.presalemanage.SaleTrackVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="STAKEHOLDER" property="stakeholder" jdbcType="VARCHAR" />
+    <result column="STAKEHOLDER_NAME" property="stakeholderName" jdbcType="VARCHAR" />
+    <result column="LINKER" property="linker" jdbcType="VARCHAR" />
+     <result column="LINKER_NAME" property="linkerName" jdbcType="VARCHAR" />
+    <result column="PROJECTNO" property="projectno" jdbcType="VARCHAR" />
+    <result column="UPDATE_BY" property="updateBy" jdbcType="VARCHAR" />
+    <result column="UPDATE_DATE" property="updateDate" jdbcType="VARCHAR" />
+    <result column="CREATE_DEPT" property="createDept" jdbcType="VARCHAR" />
+    <result column="DECISION_MAKER" property="decisionMaker" jdbcType="VARCHAR" />
+    <result column="DECISION_MAKER_NAME" property="decisionMakerName" jdbcType="VARCHAR" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="CUSTOMER_ID" property="customerId" jdbcType="VARCHAR" />
+    <result column="CUSTOMER_NAME" property="customerName" jdbcType="VARCHAR" />
+    <result column="PROJECT_NAME" property="projectName" jdbcType="VARCHAR" />
+    <result column="SALE_RESPONSIBLE" property="saleResponsible" jdbcType="VARCHAR" />
+    <result column="SALE_RESPONSIBLE_NAME" property="saleResponsibleName" jdbcType="VARCHAR" />
+    <result column="PROJECT_BUDGET" property="projectBudget" jdbcType="VARCHAR" />
+    <result column="CURRENCY" property="currency" jdbcType="VARCHAR" />
+    <result column="SALE_STATUS" property="saleStatus" jdbcType="VARCHAR" />
+    <result column="REMARK" property="remark" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="BELONG_PRODUCT" property="belongProduct" jdbcType="VARCHAR" />
+  </resultMap>
+  <!--查询字段 销售跟踪所有的表字段-->
+  <sql id="SaleTrack_Column_List" >
+    STAKEHOLDER,  
+    (SELECT to_char(WM_CONCAT(T1.contact_NAME)) FROM PMS_CONTACT T1       
+     WHERE ','||a.STAKEHOLDER||',' LIKE '%,'||ID||',%') STAKEHOLDER_NAME,
+    LINKER,   
+    (SELECT  contact_name FROM  PMS_CONTACT WHERE ID=a.LINKER) LINKER_NAME,
+    PROJECTNO,
+    BELONG_PRODUCT,
+    UPDATE_BY,
+    UPDATE_DATE,
+    DECISION_MAKER,    
+    (SELECT  contact_name FROM  PMS_CONTACT WHERE ID=a.DECISION_MAKER) DECISION_MAKER_NAME,
+    ID,
+    CUSTOMER_ID,
+   (SELECT custom_short_Name FROM PMS_CUSTOMER WHERE ID=a.CUSTOMER_ID) CUSTOMER_NAME,
+    PROJECT_NAME,
+    SALE_RESPONSIBLE,   
+    (SELECT user_name FROM  PMS_USER WHERE ID=a.SALE_RESPONSIBLE) SALE_RESPONSIBLE_NAME,
+    PROJECT_BUDGET,
+    CURRENCY,
+    SALE_STATUS,
+    REMARK,
+    CREATE_DEPT,
+    CREATE_DATE,
+    (SELECT user_name  FROM PMS_USER WHERE ID=a.CREATE_BY) CREATE_By
+  </sql>
+  
+  <!-- 根据参数查询销售跟踪信息 -->
+  <select id="querySaleTrackInfoByParam" resultMap="SaleTrackResultMap" parameterType="com.ps.result.presalemanage.SaleTrackVo" >
+    select
+    <include refid="SaleTrack_Column_List" />
+    from PMS_SALESPROJECT a
+    where a.status=0
+    <if test="projectno !=null and projectno !=''">
+        and a.PROJECTNO like '%'||#{projectno,jdbcType=VARCHAR}|| '%'
+    </if>
+    <if test="projectName !=null and projectName !=''">
+        and a.PROJECT_NAME like '%'||#{projectName,jdbcType=VARCHAR}|| '%'
+    </if>
+    <if test="customerId !=null and customerId !=''">
+        and a.CUSTOMER_ID in (${customerId})
+    </if>
+    <if test="saleStatus !=null and saleStatus !=''">
+        and a.SALE_STATUS in (${saleStatus})
+    </if>
+    <if test="saleResponsible !=null and saleResponsible !=''">
+        and a.SALE_RESPONSIBLE in (${saleResponsible})
+    </if>
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by a.Create_date DESC
+		</otherwise>
+	</choose>
+  </select>
+  <!-- 根据ID查询销售跟踪信息 -->
+  <select id="querySaleTrackById" resultMap="SaleTrackResultMap" parameterType="java.lang.String" >
+    select
+    <include refid="SaleTrack_Column_List" />
+    from PMS_SALESPROJECT a
+    where a.ID =  #{id,jdbcType=DECIMAL }
+  </select>
+  
+  <!-- 新增销售跟踪信息 -->
+  <insert id="insertSaleTrack" parameterType="com.ps.result.presalemanage.SaleTrackVo" >
+    insert into PMS_SALESPROJECT
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+	    ID,
+	    STAKEHOLDER,
+	    LINKER,
+	    PROJECTNO,
+	    UPDATE_BY,
+	    UPDATE_DATE,
+	    CREATE_DEPT,
+	    DECISION_MAKER,	    
+	    CUSTOMER_ID,
+	    PROJECT_NAME,
+	    SALE_RESPONSIBLE,
+	    BELONG_PRODUCT,
+	    PROJECT_BUDGET,
+	    CURRENCY,
+	    SALE_STATUS,
+	    REMARK,
+	    CREATE_BY,
+	    CREATE_DATE,
+	    status
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       PMS_SALESPROJECT_TB_SEQ.NEXTVAL,
+       #{stakeholder,jdbcType=VARCHAR },
+       #{linker,jdbcType=VARCHAR },
+       #{projectno,jdbcType=VARCHAR },
+       #{updateBy,jdbcType=VARCHAR },
+       sysdate,
+       #{createDept,jdbcType=VARCHAR },
+       #{decisionMaker,jdbcType=VARCHAR },
+       #{customerId,jdbcType=VARCHAR },
+       #{projectName,jdbcType=VARCHAR },
+       #{saleResponsible,jdbcType=VARCHAR },
+       #{belongProduct,jdbcType=VARCHAR },
+       #{projectBudget,jdbcType=VARCHAR },
+       #{currency,jdbcType=VARCHAR },
+       #{saleStatus,jdbcType=VARCHAR },
+       #{remark,jdbcType=VARCHAR },
+       #{createBy,jdbcType=VARCHAR },
+       sysdate,
+       0
+    </trim>
+  </insert>
+  
+  <!-- 修改销售跟踪信息 -->
+  <update id="updateSaleTrack" parameterType="com.ps.result.presalemanage.SaleTrackVo" >
+    update PMS_SALESPROJECT
+    <set >
+   		STAKEHOLDER =  #{stakeholder,jdbcType=VARCHAR },
+   		
+   		LINKER =  #{linker,jdbcType=VARCHAR },
+   		
+   		UPDATE_BY =  #{updateBy,jdbcType=VARCHAR },
+
+   		UPDATE_DATE =  sysdate,
+
+   		DECISION_MAKER =  #{decisionMaker,jdbcType=VARCHAR },
+
+   		CUSTOMER_ID =  #{customerId,jdbcType=VARCHAR },
+
+   		PROJECT_NAME =  #{projectName,jdbcType=VARCHAR },
+
+   		SALE_RESPONSIBLE =  #{saleResponsible,jdbcType=VARCHAR },
+   		
+   		BELONG_PRODUCT =  #{belongProduct,jdbcType=VARCHAR },
+
+   		PROJECT_BUDGET =  #{projectBudget,jdbcType=VARCHAR },
+
+   		CURRENCY =  #{currency,jdbcType=VARCHAR },
+
+   		SALE_STATUS =  #{saleStatus,jdbcType=VARCHAR },
+
+   		REMARK =  #{remark,jdbcType=VARCHAR }		
+    </set>
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 根据ID删除销售跟踪信息 -->
+  <delete id="deleteSaleTrackById" parameterType="java.lang.String" >
+    update PMS_SALESPROJECT set status=1
+    where ID =  #{id,jdbcType=DECIMAL }
+  </delete>
+   <!-- 根据项目所属产品查询项目编号最大值 -->
+  <select id="getMaxProjectNo" resultType="java.lang.String" parameterType="java.lang.String" >
+    SELECT 'SCN-'||#{belongProduct,jdbcType=DECIMAL }||'-'||trim(to_char(nvl(max(to_number(substr(t1.PROJECTNO,LENGTH(t1.PROJECTNO)-2,3))),0)+1,'000'))
+            FROM PMS_SALESPROJECT T1
+     WHERE t1.PROJECTNO LIKE  'SCN-'||#{belongProduct,jdbcType=DECIMAL }||'-%'      
+  </select>
+  <!-- 根据产品id查询产品名称 -->
+  <select id="getProductNameByCode" resultType="java.lang.String" parameterType="java.lang.String" >
+    SELECT code_zh productName FROM PMS_CODE WHERE code_type='projectonly' AND code_value=#{belongProduct,jdbcType=DECIMAL} 
+  </select>
+</mapper>

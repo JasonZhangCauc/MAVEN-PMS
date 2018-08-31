@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.projectmanage.DocumentManageDao" >
+  <resultMap id="BaseResultMap" type="com.ps.result.projectmanage.DocumentManageVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="MONI_DUC_ID" property="moniDucId" jdbcType="VARCHAR" />
+    <result column="MONI_FILENAME" property="moniFilename" jdbcType="VARCHAR" />
+    <result column="MONI_FILETYPE" property="moniFiletype" jdbcType="VARCHAR" />
+    <result column="UPLOADBY" property="uploadby" jdbcType="VARCHAR" />
+    <result column="UPLOADDATE" property="uploaddate" jdbcType="VARCHAR" />
+    <result column="FILE_PATH" property="filePath" jdbcType="VARCHAR" />
+  </resultMap>
+  <!--查询字段 所有的表字段-->
+  <sql id="Base_Column_List" >
+    ID,
+    MONI_DUC_ID,
+    MONI_FILENAME,
+    MONI_FILETYPE,
+    UPLOADBY,
+    UPLOADDATE,
+    FILE_PATH
+  </sql>
+  
+  <!-- 根据参数查询列表信息 -->
+  <select id="queryDocumentManageInfoByParam" resultMap="BaseResultMap" parameterType="com.ps.result.projectmanage.DocumentManageVo" >
+    select
+    <include refid="Base_Column_List" />
+    from PMS_MONI_DOCUMENT
+  </select>
+  
+  <!-- 根据ID查询列表信息 -->
+  <select id="queryDocumentManageById" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from PMS_MONI_DOCUMENT
+    where ID =  #{id,jdbcType=DECIMAL }
+  </select>
+  
+  <!-- 新增信息 -->
+  <insert id="insertDocumentManage" parameterType="com.ps.result.projectmanage.DocumentManageVo" >
+    insert into PMS_MONI_DOCUMENT
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+	    ID,
+	    MONI_DUC_ID,
+	    MONI_FILENAME,
+	    MONI_FILETYPE,
+	    UPLOADBY,
+	    UPLOADDATE,
+	    FILE_PATH,
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       PMS_MONI_DOCUMENT_SEQ.nextval,
+       #{vo.moniDucId,jdbcType=VARCHAR },
+       #{vo.moniFilename,jdbcType=VARCHAR },
+       #{vo.moniFiletype,jdbcType=VARCHAR },
+       #{vo.uploadby,jdbcType=VARCHAR },
+       sysdate,
+       #{vo.filePath,jdbcType=VARCHAR },
+    </trim>
+  </insert>
+  
+  <!-- 修改信息 -->
+  <update id="updateDocumentManage" parameterType="com.ps.result.projectmanage.DocumentManageVo" >
+    update PMS_MONI_DOCUMENT
+    <set >
+		<if test="vo.id != null">
+    		ID =  #{vo.id,jdbcType=VARCHAR },
+		</if>
+		<if test="vo.moniDucId != null">
+    		MONI_DUC_ID =  #{vo.moniDucId,jdbcType=VARCHAR },
+		</if>
+		<if test="vo.moniFilename != null">
+    		MONI_FILENAME =  #{vo.moniFilename,jdbcType=VARCHAR },
+		</if>
+		<if test="vo.moniFiletype != null">
+    		MONI_FILETYPE =  #{vo.moniFiletype,jdbcType=VARCHAR },
+		</if>
+		<if test="vo.uploadby != null">
+    		UPLOADBY =  #{vo.uploadby,jdbcType=VARCHAR },
+		</if>
+		<if test="vo.uploaddate != null">
+    		UPLOADDATE =  #{vo.uploaddate,jdbcType=VARCHAR },
+		</if>
+		<if test="vo.filePath != null">
+    		FILE_PATH =  #{vo.filePath,jdbcType=VARCHAR },
+		</if>
+    </set>
+    where ID = #{vo.id,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 根据ID删除信息 -->
+  <delete id="deleteDocumentManageById" parameterType="java.lang.String" >
+    delete from PMS_MONI_DOCUMENT
+    where ID =  #{id,jdbcType=DECIMAL }
+  </delete>
+  
+  <select id="searchDoucmentList" resultMap="BaseResultMap" parameterType="com.ps.result.projectmanage.DocumentManageVo" >
+  	select ID,
+    MONI_DUC_ID,
+    MONI_FILENAME,
+    MONI_FILETYPE,
+    UPLOADBY,
+    UPLOADDATE,
+    FILE_PATH from PMS_MONI_DOCUMENT where MONI_DUC_ID = #{moniDucId,jdbcType=DECIMAL}
+  </select>
+</mapper>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ps.dao.common.ProductCodeDao">
+	
+	<!-- 根据表查询数据表中字段信息  -->
+	<select id="getColumnsByTable" resultType="com.ps.result.common.TableVo">
+		SELECT t.TABLE_NAME tableName,
+			t.COLUMN_NAME columnName,
+			t.COMMENTS comments
+		FROM USER_COL_COMMENTS t 
+		WHERE t.TABLE_NAME = #{tableName,jdbcType=NVARCHAR}
+	</select>
+</mapper>

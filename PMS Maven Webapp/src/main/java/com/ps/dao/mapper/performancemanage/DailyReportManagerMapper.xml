@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.performancemanager.DailyReportManagerDao" >
+  <!-- 日报管理映射实体类 -->
+  <resultMap id="DailyReportResultMap" type="com.ps.result.performancemanage.DailyReportVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="UPDATE_BY" property="updateBy" jdbcType="VARCHAR" />
+    <result column="UPDATE_DATE" property="updateDate" jdbcType="VARCHAR" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="PRO_ID" property="proId" jdbcType="VARCHAR" />
+    <result column="PRO_REPORTER" property="proReporter" jdbcType="VARCHAR" />
+    <result column="REPORT_DATE" property="reportDate" jdbcType="VARCHAR" />
+    <result column="REPORT_TYPE" property="reportType" jdbcType="VARCHAR" />
+    <result column="TASK_TODAY" property="taskToday" jdbcType="VARCHAR" />
+    <result column="QUESTION_TODAY" property="questionToday" jdbcType="VARCHAR" />
+    <result column="CONCLUSION_TODAY" property="conclusionToday" jdbcType="VARCHAR" />
+    <result column="PLAN_TOMORROW" property="planTomorrow" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="REPORT_STATUS" property="reportStatus" jdbcType="VARCHAR" />
+    <result column="PRO_REPORTER_NAME" property="proReporterName" jdbcType="VARCHAR" />
+    <result column="PRO_NUM" property="proNum" jdbcType="VARCHAR" />
+    <result column="BELONG_CUSTOMER" property="belongCustomer" jdbcType="VARCHAR" />
+    <result column="BELONG_PRODUCT" property="belongProduct" jdbcType="VARCHAR" />
+  </resultMap>
+  <!--查询字段 所有的表字段-->
+  <sql id="DailyReport_Column_List" >
+    ID,
+    PRO_ID,
+    PRO_REPORTER,
+    to_char(REPORT_DATE,'YYYY-MM-DD') REPORT_DATE,
+    REPORT_TYPE,
+    TASK_TODAY,
+    QUESTION_TODAY,
+    CONCLUSION_TODAY,
+    PLAN_TOMORROW,
+    CREATE_BY,
+    to_char(CREATE_DATE,'YYYY-MM-DD') CREATE_DATE,
+    UPDATE_BY,
+    to_char(UPDATE_DATE,'YYYY-MM-DD') UPDATE_DATE,
+    REPORT_STATUS,
+    PRO_REPORTER_NAME,
+    PRO_NUM,
+    BELONG_CUSTOMER,
+    BELONG_PRODUCT
+  </sql>
+  
+  <!-- 根据参数查询列表信息 -->
+  <select id="queryDailyReportInfoByParam" resultMap="DailyReportResultMap" parameterType="com.ps.result.performancemanage.DailyReportVo" >
+    select
+    <include refid="DailyReport_Column_List" />
+    from (
+    	SELECT T1.ID               ID,
+         T1.PRO_ID           PRO_ID,
+         T1.PRO_REPORTER     PRO_REPORTER,
+         T1.REPORT_DATE      REPORT_DATE,
+         T1.REPORT_TYPE      REPORT_TYPE,
+         T1.TASK_TODAY       TASK_TODAY,
+         T1.QUESTION_TODAY   QUESTION_TODAY,
+         T1.CONCLUSION_TODAY CONCLUSION_TODAY,
+         T1.PLAN_TOMORROW    PLAN_TOMORROW,
+         T1.CREATE_BY        CREATE_BY,
+         T1.CREATE_DATE      CREATE_DATE,
+         T1.UPDATE_BY        UPDATE_BY,
+         T1.UPDATE_DATE      UPDATE_DATE,
+         T1.REPORT_STATUS    REPORT_STATUS,
+         T2.USER_NAME        PRO_REPORTER_NAME,
+         T3.PROJECT_NO       PRO_NUM,
+         T4.CUSTOM_NAME      BELONG_CUSTOMER,
+         T5.CODE_ZH          BELONG_PRODUCT
+	    FROM PMS_DAILY_REPORT T1
+	    LEFT JOIN PMS_USER T2
+	      ON T1.PRO_REPORTER = T2.ID
+	    LEFT JOIN PMS_PROJECT T3
+	      ON T1.PRO_ID = T3.ID
+	    LEFT JOIN PMS_CUSTOMER T4
+	      ON T3.BELONG_CUSTOMERID = T4.ID
+	    LEFT JOIN PMS_CODE T5
+	      ON T3.BELONG_PRODUCT = T5.CODE_VALUE
+	     AND T5.CODE_TYPE = 'PRODUCT'
+	    LEFT JOIN pms_user t6
+		  ON t1.create_by=t6.id
+	     where 1=1
+	     <if test="belongCustomer != null and belongCustomer != ''">
+    		and T3.BELONG_CUSTOMERID in (${belongCustomer})
+	     </if>
+	     <if test="belongProduct != null and belongProduct != ''">
+	    	and T3.BELONG_PRODUCT in (${belongProduct})
+	     </if>
+	     <!-- 查看个人 -->
+	     <if test="authority == 1">
+	    	and t6.id = #{authUserId,jdbcType=VARCHAR }
+	     </if>
+	     <!-- 查看部门 -->
+	     <if test="authority == 2">
+	    	and t6.dept_id in (${authDeptId})
+	     </if>
+    )f
+    where 1=1
+    and f.REPORT_STATUS=0
+    <if test="proNum != null and proNum != ''">
+    	and f.PRO_NUM like '%'||#{proNum,jdbcType=VARCHAR }||'%'
+    </if>
+    <if test="proReporterName != null and proReporterName != ''">
+    	and f.PRO_REPORTER_NAME like '%'||#{proReporterName,jdbcType=VARCHAR }||'%'
+    </if>
+    <if test="reportBeginDate != null and reportBeginDate != ''">
+    	and f.REPORT_DATE >= to_date(#{reportBeginDate,jdbcType=VARCHAR },'YYYY-MM-DD')
+    </if>
+    <if test="reportEndDate != null and reportEndDate != ''">
+    	and to_date(#{reportEndDate,jdbcType=VARCHAR },'YYYY-MM-DD') >=f.REPORT_DATE 
+    </if>
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by f.CREATE_DATE DESC
+		</otherwise>
+	</choose>
+  </select>
+  
+  <!-- 根据ID查询列表信息 -->
+  <select id="queryDailyReportById" resultMap="DailyReportResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="DailyReport_Column_List" />
+    from (
+    	SELECT T1.ID               ID,
+         T1.PRO_ID           PRO_ID,
+         T1.PRO_REPORTER     PRO_REPORTER,
+         T1.REPORT_DATE      REPORT_DATE,
+         T1.REPORT_TYPE      REPORT_TYPE,
+         T1.TASK_TODAY       TASK_TODAY,
+         T1.QUESTION_TODAY   QUESTION_TODAY,
+         T1.CONCLUSION_TODAY CONCLUSION_TODAY,
+         T1.PLAN_TOMORROW    PLAN_TOMORROW,
+         T1.CREATE_BY        CREATE_BY,
+         T1.CREATE_DATE      CREATE_DATE,
+         T1.UPDATE_BY        UPDATE_BY,
+         T1.UPDATE_DATE      UPDATE_DATE,
+         T1.REPORT_STATUS    REPORT_STATUS,
+         T2.USER_NAME        PRO_REPORTER_NAME,
+         T3.PROJECT_NO       PRO_NUM,
+         T4.CUSTOM_NAME      BELONG_CUSTOMER,
+         T5.CODE_ZH          BELONG_PRODUCT
+	    FROM PMS_DAILY_REPORT T1
+	    LEFT JOIN PMS_USER T2
+	      ON T1.PRO_REPORTER = T2.ID
+	    LEFT JOIN PMS_PROJECT T3
+	      ON T1.PRO_ID = T3.ID
+	    LEFT JOIN PMS_CUSTOMER T4
+	      ON T3.BELONG_CUSTOMERID = T4.ID
+	    LEFT JOIN PMS_CODE T5
+	      ON T3.BELONG_PRODUCT = T5.CODE_VALUE
+	     AND T5.CODE_TYPE = 'PRODUCT'
+    )f
+    where 1=1
+    and f.ID =  #{id,jdbcType=DECIMAL }
+  </select>
+  
+  <!-- 新增信息 -->
+  <insert id="insertDailyReport" parameterType="com.ps.result.performancemanage.DailyReportVo" >
+    insert into PMS_DAILY_REPORT
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+	    ID,
+	    PRO_ID,
+	    PRO_REPORTER,
+	    REPORT_DATE,
+	    REPORT_TYPE,
+	    TASK_TODAY,
+	    QUESTION_TODAY,
+	    CONCLUSION_TODAY,
+	    PLAN_TOMORROW,
+	    CREATE_BY,
+	    CREATE_DATE,
+	    REPORT_STATUS,
+	    UPDATE_BY,
+	    UPDATE_DATE
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       PMS_DAILY_REPORT_SEQ.NEXTVAL,
+       #{proId,jdbcType=VARCHAR },
+       #{proReporter,jdbcType=VARCHAR },
+       to_date(#{reportDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+       #{reportType,jdbcType=VARCHAR },
+       #{taskToday,jdbcType=VARCHAR },
+       #{questionToday,jdbcType=VARCHAR },
+       #{conclusionToday,jdbcType=VARCHAR },
+       #{planTomorrow,jdbcType=VARCHAR },
+       #{createBy,jdbcType=VARCHAR },
+       sysdate,
+       0,
+       #{updateBy,jdbcType=VARCHAR },
+       sysdate
+    </trim>
+  </insert>
+  
+  <!-- 修改信息 -->
+  <update id="updateDailyReport" parameterType="com.ps.result.performancemanage.DailyReportVo" >
+    update PMS_DAILY_REPORT
+    set
+   		PRO_ID =  #{proId,jdbcType=VARCHAR },
+   		PRO_REPORTER =  #{proReporter,jdbcType=VARCHAR },
+   		REPORT_DATE =  to_date(#{reportDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+   		REPORT_TYPE =  #{reportType,jdbcType=VARCHAR },
+   		TASK_TODAY =  #{taskToday,jdbcType=VARCHAR },
+   		QUESTION_TODAY =  #{questionToday,jdbcType=VARCHAR },
+   		CONCLUSION_TODAY =  #{conclusionToday,jdbcType=VARCHAR },
+   		PLAN_TOMORROW =  #{planTomorrow,jdbcType=VARCHAR },
+   		UPDATE_BY =  #{updateBy,jdbcType=VARCHAR },
+   		UPDATE_DATE =  sysdate
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 根据ID无效日报信息 -->
+  <update id="updateDailyReportStatus" parameterType="java.lang.String" >
+    update PMS_DAILY_REPORT set REPORT_STATUS='1'
+    where ID =  #{id,jdbcType=DECIMAL }
+  </update>
+</mapper>

@@ -1,0 +1,532 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ps.dao.systemmanage.UserManagerDao">
+  <!-- 用户表实体映射类 -->
+  <resultMap id="UserResultMap" type="com.ps.result.systemmanage.UserVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="USER_ACCOUNT" property="userAccount" jdbcType="VARCHAR" />
+    <result column="USER_NAME" property="userName" jdbcType="VARCHAR" />
+    <result column="USER_PASSWORD" property="userPassword" jdbcType="VARCHAR" />
+    <result column="USER_SEX" property="userSex" jdbcType="VARCHAR" />
+    <result column="USER_EMAIL" property="userEmail" jdbcType="VARCHAR" />
+    <result column="USER_LANGUAGE" property="userLanguage" jdbcType="VARCHAR" />
+    <result column="USER_PHONE" property="userPhone" jdbcType="VARCHAR" />
+    <result column="USER_ADDRESS" property="userAddress" jdbcType="VARCHAR" />
+    <result column="USER_PLACE" property="userPlace" jdbcType="VARCHAR" />
+    <result column="USER_FACE" property="userFace" jdbcType="VARCHAR" />
+    <result column="USER_IDCARD" property="userIdcard" jdbcType="VARCHAR" />
+    <result column="USER_PIC" property="userPic" jdbcType="VARCHAR" />
+    <result column="DEPT_ID" property="deptId" jdbcType="VARCHAR" />
+    <result column="USER_POSITION" property="userPosition" jdbcType="VARCHAR" />
+    <result column="USER_AGE" property="userAge" jdbcType="VARCHAR" />
+    <result column="USER_BIRTH" property="userBirth" jdbcType="VARCHAR" />
+    <result column="ENTRY_DATE" property="entryDate" jdbcType="VARCHAR" />
+    <result column="DIPLOMA_SCHOOL" property="diplomaSchool" jdbcType="VARCHAR" />
+    <result column="DIPLOMA_DATE" property="diplomaDate" jdbcType="VARCHAR" />
+    <result column="USER_RECORD" property="userRecord" jdbcType="VARCHAR" />
+    <result column="USER_MOBILE" property="userMobile" jdbcType="VARCHAR" />
+    <result column="USER_COUNT" property="userCount" jdbcType="VARCHAR" />
+    <result column="USER_REMARK" property="userRemark" jdbcType="VARCHAR" />
+    <result column="USER_FLAG" property="userFlag" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="UPDATE_BY" property="updateBy" jdbcType="VARCHAR" />
+    <result column="UPDATE_DATE" property="updateDate" jdbcType="VARCHAR" />
+    <result column="USER_NATURE" property="userNature" jdbcType="VARCHAR" />
+    <result column="USER_IP" property="userIp" jdbcType="VARCHAR" />
+    <result column="USER_TYPE" property="userType" jdbcType="VARCHAR" />
+    <result column="USER_CONTACT_ID" property="contactId" jdbcType="VARCHAR" />
+  </resultMap>
+  
+  <sql id="User_Column_List" >
+    ID,
+    USER_ACCOUNT,
+    USER_NAME,
+    USER_PASSWORD,
+    USER_SEX,
+    USER_EMAIL,
+    USER_LANGUAGE,
+    USER_PHONE,
+    USER_ADDRESS,
+    USER_PLACE,
+    USER_FACE,
+    USER_IDCARD,
+    USER_PIC,
+    DEPT_ID,
+    USER_POSITION,
+    USER_AGE,
+    USER_NATURE,
+    to_char(USER_BIRTH,'yyyy-mm-dd') USER_BIRTH,
+    to_char(ENTRY_DATE,'yyyy-mm-dd') ENTRY_DATE,
+    DIPLOMA_SCHOOL,
+    to_char(DIPLOMA_DATE,'yyyy-mm-dd') DIPLOMA_DATE,
+    USER_RECORD,
+    USER_MOBILE,
+    USER_COUNT,
+    USER_REMARK,
+    USER_FLAG,
+    CREATE_BY,
+    to_char(CREATE_DATE,'yyyy-mm-dd hh24:mi') CREATE_DATE,
+    UPDATE_BY,
+    to_char(UPDATE_DATE,'yyyy-mm-dd hh24:mi') UPDATE_DATE,
+    USER_IP
+  </sql>
+  
+  <!-- 根据查询条件获取用户信息 -->
+  <select id="queryUserInfoByParam" resultMap="UserResultMap"
+  			parameterType="com.ps.result.systemmanage.RoleVo" >
+    select 
+    <include refid="User_Column_List" />   
+    from PMS_USER t
+    where 1=1
+    <if test="userAccount != null and userAccount != ''">
+	  AND LOWER(USER_ACCOUNT) LIKE '%' || LOWER(#{userAccount}) || '%'
+    </if>
+    <if test="radio != null and radio != '' and radio !='null'">
+    	AND ','||USER_POSITION||',' like '%,3,%'
+    </if>
+    <!-- <if test="userPosition != null and userPosition != ''">
+	  AND USER_POSITION = #{userPosition,jdbcType=VARCHAR }
+    </if> -->
+    <if test="userName != null and userName != ''">
+	  AND USER_NAME LIKE '%'||#{userName}||'%'
+    </if>
+    <if test="userFlag != null and userFlag != '' and userFlag!='null'">
+	  AND USER_FLAG IN (${userFlag})
+    </if>
+    <if test="userType != null and userType != '' and userType!='null'">
+	  AND USER_TYPE IN (${userType})
+    </if>
+    <if test="deptId != null and deptId != '' and deptId !='null'">
+    	AND ','||DEPT_ID||',' like '%,'||#{deptId}||',%' 
+    </if>
+    <if test="userPosition != null and userPosition != '' and userPosition !='null'">
+    	AND ','||USER_POSITION||',' like '%,'||#{userPosition}||',%'
+    </if>
+    <!-- 无权限 -->
+    <if test="authority == 0">
+       and 1!=1
+    </if>
+     <!-- 查看个人 -->
+     <if test="authority == 1">
+    	and t.id = #{authUserId,jdbcType=VARCHAR }
+     </if>
+     <!-- 查看项目 -->
+     <if test="authority == 2">
+     	<if test="authDeptId != null and authDeptId != '' and authDeptId != 'null' ">
+    	  AND (
+		  <foreach collection="authDeptId.split(',')" item="authDept" index="index"
+		      open="" close="" separator="or">
+		      (','||t.DEPT_ID||',' like '%,'||#{authDept,jdbcType=VARCHAR}||',%')
+		  </foreach>
+		  )
+     	</if>
+     	<if test="authDeptId == null or authDeptId == '' or authDeptId == 'null' ">
+		  AND 1!=1
+		</if>
+     </if>
+     <!-- 查看部门 -->
+     <if test="authority == 3">
+    	<if test="authDeptId != null and authDeptId != '' and authDeptId != 'null' ">
+    	  AND (
+		  <foreach collection="authDeptId.split(',')" item="authDept" index="index"
+		      open="" close="" separator="or">
+		      (','||t.DEPT_ID||',' like '%,'||#{authDept,jdbcType=VARCHAR}||',%')
+		  </foreach>
+		  )
+     	</if>
+     	<if test="authDeptId == null or authDeptId == '' or authDeptId == 'null' ">
+		  AND 1!=1
+		</if>
+     </if>
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by CREATE_DATE
+		</otherwise>
+	</choose>
+  </select>
+  
+  <!-- 初始化销售负责人 -->
+  <select id="businessPeople" resultMap="UserResultMap"
+  			parameterType="com.ps.result.systemmanage.RoleVo">
+  		select 
+	    <include refid="User_Column_List" />   
+	    from PMS_USER t
+  		where 1=1 AND ','||t.USER_POSITION||',' like '%,9,%' and t.user_type = 0
+  		<if test="toDivision != null and toDivision != '' and toDivision !='null'">
+	    	AND ','||DEPT_ID||',' like '%,'||#{toDivision}||',%' 
+	    </if>
+  </select>
+  
+  <!-- 初始化项目负责人 -->
+  <select id="projectPeople" resultMap="UserResultMap"
+  			parameterType="com.ps.result.systemmanage.RoleVo">
+  	select 
+    <include refid="User_Column_List" />   
+    from PMS_USER t
+ 		where 1=1 AND ','||USER_POSITION||','  like '%,3,%' and t.user_type = 0
+ 		<if test="toDivision != null and toDivision != '' and toDivision !='null'">
+	    	AND ','||DEPT_ID||',' like '%,'||#{toDivision}||',%' 
+	    </if>
+  </select>
+  
+  <!-- 初始化次要责任人 -->
+  <select id="responsibleSecondary" resultMap="UserResultMap"
+  			parameterType="com.ps.result.systemmanage.RoleVo">
+  	select 
+    <include refid="User_Column_List" />   
+    from PMS_USER t
+ 		where 1=1 and user_type = 0
+  </select>
+  
+  <!-- 初始化产品经理 -->
+  <select id="productManager" resultMap="UserResultMap"
+  			parameterType="com.ps.result.systemmanage.UserVo">
+  	select 
+    <include refid="User_Column_List" />   
+    from PMS_USER t
+ 		where 1=1 and user_type = 0 AND ','||USER_POSITION||','  like '%,1,%'
+ 		<if test="toDivision != null and toDivision != '' and toDivision !='null'">
+	    	AND ','||DEPT_ID||',' like '%,'||#{toDivision}||',%' 
+	    </if>
+  </select>
+  
+  
+  
+  <select id="queryUserInfoByParamSale" resultMap="UserResultMap"
+  			parameterType="com.ps.result.systemmanage.RoleVo" >
+    select 
+    <include refid="User_Column_List" />   
+    from PMS_USER t
+    where 1=1 AND ','||USER_POSITION||',' like '%,1,%' and t.user_type = 0
+    <if test="toDivision != null and toDivision != '' and toDivision !='null'">
+    	AND ','||DEPT_ID||',' like '%,'||#{toDivision}||',%' 
+    </if>
+    <if test="userAccount != null and userAccount != ''">
+	  AND LOWER(USER_ACCOUNT) LIKE '%' || LOWER(#{userAccount}) || '%'
+    </if>
+    <if test="userName != null and userName != ''">
+	  AND USER_NAME LIKE '%'||#{userName}||'%'
+    </if>
+    <if test="userType != null and userType != ''">
+	  AND USER_TYPE = #{userType,jdbcType=VARCHAR }
+    </if>
+    <if test="userFlag != null and userFlag != '' and userFlag!='null'">
+	  AND USER_FLAG IN (${userFlag})
+    </if>
+    <if test="userType != null and userType != '' and userType!='null'">
+	  AND USER_TYPE IN (${userType})
+    </if>
+     <!-- 查看个人 -->
+     <if test="authority == 1">
+    	and t.id = #{authUserId,jdbcType=VARCHAR }
+     </if>
+     <!-- 查看部门 -->
+     <if test="authority == 2">
+    	and t.DEPT_ID in (${authDeptId})
+     </if>
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by CREATE_DATE
+		</otherwise>
+	</choose>
+  </select>
+  
+  <!-- 根据用户ID获取用户对象 -->
+  <select id="queryUserInfoById" resultMap="UserResultMap">
+	select 
+    <include refid="User_Column_List" />
+    from PMS_USER
+    where ID =  #{id,jdbcType=DECIMAL }
+  </select>
+	
+  <!-- 通过账号查询用户 -->
+  <select id="queryUserInfoByAccount" resultMap="UserResultMap">
+	select 
+	   <include refid="User_Column_List" />
+	from PMS_user t
+    where 1 = 1
+	AND LOWER(T.USER_ACCOUNT)=LOWER(#{userAccount,jdbcType=VARCHAR})
+  </select>
+  
+  <!-- 根据用户ID更新用户状态 -->
+  <update id="updateUserStatus">
+	update PMS_user set USER_FLAG=#{status,jdbcType=VARCHAR} WHERE ID=#{userId,jdbcType=VARCHAR}
+  </update>
+  
+  <!-- 插入用戶 -->
+  <insert id="saveUser" parameterType="com.ps.result.systemmanage.UserVo">
+  	<selectKey  resultType="java.lang.String" order="BEFORE" keyProperty="id">
+          SELECT PMS_USER_TB_SEQ.NEXTVAL as id FROM  DUAL
+    </selectKey>
+  	insert into PMS_USER(ID,
+	    USER_ACCOUNT,
+	    USER_NAME,
+	    USER_PASSWORD,
+	    USER_SEX,
+	    USER_EMAIL,
+	    USER_LANGUAGE,
+	    USER_PHONE,
+	    USER_ADDRESS,
+	    USER_PLACE,
+	    USER_FACE,
+	    USER_IDCARD,
+	    USER_PIC,
+	    DEPT_ID,
+	    USER_POSITION,
+	    USER_AGE,
+	    USER_BIRTH,
+	    ENTRY_DATE,
+	    DIPLOMA_SCHOOL,
+	    DIPLOMA_DATE,
+	    USER_RECORD,
+	    USER_MOBILE,
+	    USER_COUNT,
+	    USER_REMARK,
+	    USER_FLAG,
+	    CREATE_BY,
+	    CREATE_DATE,
+	    UPDATE_BY,
+	    UPDATE_DATE,
+	    USER_NATURE,
+	    USER_TYPE,
+	    USER_CONTACT_ID)
+	    values(#{id,jdbcType=NVARCHAR},
+	       #{userAccount,jdbcType=VARCHAR },
+	       #{userName,jdbcType=VARCHAR },
+	       #{userPassword,jdbcType=VARCHAR },
+	       #{userSex,jdbcType=VARCHAR },
+	       #{userEmail,jdbcType=VARCHAR },
+	       #{userLanguage,jdbcType=VARCHAR },
+	       #{userPhone,jdbcType=VARCHAR },
+	       #{userAddress,jdbcType=VARCHAR },
+	       #{userPlace,jdbcType=VARCHAR },
+	       #{userFace,jdbcType=VARCHAR },
+	       #{userIdcard,jdbcType=VARCHAR },
+	       #{userPic,jdbcType=VARCHAR },
+	       #{deptId,jdbcType=VARCHAR },
+	       #{userPosition,jdbcType=VARCHAR },
+	       #{userAge,jdbcType=VARCHAR },
+	       TO_DATE(#{userBirth,jdbcType=VARCHAR },'yyyy-MM-dd'),
+	       TO_DATE(#{entryDate,jdbcType=VARCHAR },'yyyy-MM-dd'),
+	       #{diplomaSchool,jdbcType=VARCHAR },
+	       TO_DATE(#{diplomaDate,jdbcType=VARCHAR },'yyyy-MM-dd'),
+	       #{userRecord,jdbcType=VARCHAR },
+	       #{userMobile,jdbcType=VARCHAR },
+	       #{userCount,jdbcType=VARCHAR },
+	       #{userRemark,jdbcType=VARCHAR },
+	       0,
+	       #{createBy,jdbcType=VARCHAR },
+	       sysdate,
+	       #{updateBy,jdbcType=VARCHAR },
+	       sysdate,
+	       #{userNature,jdbcType=VARCHAR },
+	       #{userType,jdbcType=VARCHAR},
+	       #{contactId,jdbcType=VARCHAR})
+  </insert>
+  
+  <!-- 插入用户 -->
+  <insert id="insertUser" parameterType="com.ps.result.systemmanage.UserVo" >
+    insert into PMS_USER
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+	    ID,
+	    USER_ACCOUNT,
+	    USER_NAME,
+	    USER_PASSWORD,
+	    USER_SEX,
+	    USER_EMAIL,
+	    USER_LANGUAGE,
+	    USER_PHONE,
+	    USER_ADDRESS,
+	    USER_PLACE,
+	    USER_FACE,
+	    USER_IDCARD,
+	    USER_PIC,
+	    DEPT_ID,
+	    USER_POSITION,
+	    USER_AGE,
+	    USER_BIRTH,
+	    ENTRY_DATE,
+	    DIPLOMA_SCHOOL,
+	    DIPLOMA_DATE,
+	    USER_RECORD,
+	    USER_MOBILE,
+	    USER_COUNT,
+	    USER_REMARK,
+	    USER_FLAG,
+	    CREATE_BY,
+	    CREATE_DATE,
+	    UPDATE_BY,
+	    UPDATE_DATE,
+	    USER_NATURE,
+	    USER_TYPE,
+	    USER_CONTACT_ID
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       PMS_USER_TB_SEQ.NEXTVAL,
+       #{userAccount,jdbcType=VARCHAR },
+       #{userName,jdbcType=VARCHAR },
+       #{userPassword,jdbcType=VARCHAR },
+       #{userSex,jdbcType=VARCHAR },
+       #{userEmail,jdbcType=VARCHAR },
+       #{userLanguage,jdbcType=VARCHAR },
+       #{userPhone,jdbcType=VARCHAR },
+       #{userAddress,jdbcType=VARCHAR },
+       #{userPlace,jdbcType=VARCHAR },
+       #{userFace,jdbcType=VARCHAR },
+       #{userIdcard,jdbcType=VARCHAR },
+       #{userPic,jdbcType=VARCHAR },
+       #{deptId,jdbcType=VARCHAR },
+       #{userPosition,jdbcType=VARCHAR },
+       #{userAge,jdbcType=VARCHAR },
+       TO_DATE(#{userBirth,jdbcType=VARCHAR },'yyyy-MM-dd'),
+       TO_DATE(#{entryDate,jdbcType=VARCHAR },'yyyy-MM-dd'),
+       #{diplomaSchool,jdbcType=VARCHAR },
+       TO_DATE(#{diplomaDate,jdbcType=VARCHAR },'yyyy-MM-dd'),
+       #{userRecord,jdbcType=VARCHAR },
+       #{userMobile,jdbcType=VARCHAR },
+       #{userCount,jdbcType=VARCHAR },
+       #{userRemark,jdbcType=VARCHAR },
+       0,
+       #{createBy,jdbcType=VARCHAR },
+       sysdate,
+       #{updateBy,jdbcType=VARCHAR },
+       sysdate,
+       #{userNature,jdbcType=VARCHAR },
+       #{userType,jdbcType=VARCHAR},
+       #{contactId,jdbcType=VARCHAR}
+    </trim>
+  </insert>
+  
+  <!-- 根据用户ID更新用户信息 -->
+  <update id="updateUser" parameterType="com.ps.result.systemmanage.UserVo" >
+    update PMS_USER
+    set
+   		USER_ACCOUNT =  #{userAccount,jdbcType=VARCHAR },
+   		USER_NAME =  #{userName,jdbcType=VARCHAR },
+   		USER_SEX =  #{userSex,jdbcType=VARCHAR },
+   		USER_EMAIL =  #{userEmail,jdbcType=VARCHAR },
+   		USER_LANGUAGE =  #{userLanguage,jdbcType=VARCHAR },
+   		USER_PHONE =  #{userPhone,jdbcType=VARCHAR },
+   		USER_ADDRESS =  #{userAddress,jdbcType=VARCHAR },
+   		USER_PLACE =  #{userPlace,jdbcType=VARCHAR },
+   		USER_FACE =  #{userFace,jdbcType=VARCHAR },
+   		USER_IDCARD =  #{userIdcard,jdbcType=VARCHAR },
+   		USER_PIC =  #{userPic,jdbcType=VARCHAR },
+   		DEPT_ID =  #{deptId,jdbcType=VARCHAR },
+   		USER_POSITION =  #{userPosition,jdbcType=VARCHAR },
+   		USER_AGE =  #{userAge,jdbcType=VARCHAR },
+   		USER_BIRTH =  TO_DATE(#{userBirth,jdbcType=VARCHAR },'yyyy-MM-dd'),
+   		ENTRY_DATE =  TO_DATE(#{entryDate,jdbcType=VARCHAR },'yyyy-MM-dd'),
+   		DIPLOMA_SCHOOL =  #{diplomaSchool,jdbcType=VARCHAR },
+   		DIPLOMA_DATE =  TO_DATE(#{diplomaDate,jdbcType=VARCHAR },'yyyy-MM-dd'),
+   		USER_RECORD =  #{userRecord,jdbcType=VARCHAR },
+   		USER_MOBILE =  #{userMobile,jdbcType=VARCHAR },
+   		USER_COUNT =  #{userCount,jdbcType=VARCHAR },
+   		USER_REMARK =  #{userRemark,jdbcType=VARCHAR },
+   		USER_NATURE = #{userNature,jdbcType=VARCHAR },
+   		UPDATE_BY =  #{updateBy,jdbcType=VARCHAR },
+   		UPDATE_DATE = sysdate
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 根据联系人id更新用户信息 -->
+  <update id="updateUserByContactId" parameterType="com.ps.result.systemmanage.UserVo">
+  	update PMS_USER
+    set
+   		USER_ACCOUNT =  #{userAccount,jdbcType=VARCHAR },
+   		USER_NAME =  #{userName,jdbcType=VARCHAR },
+   		USER_SEX =  #{userSex,jdbcType=VARCHAR },
+   		USER_EMAIL =  #{userEmail,jdbcType=VARCHAR },
+   		USER_LANGUAGE =  #{userLanguage,jdbcType=VARCHAR },
+   		USER_PHONE =  #{userPhone,jdbcType=VARCHAR },
+   		USER_ADDRESS =  #{userAddress,jdbcType=VARCHAR },
+   		USER_PLACE =  #{userPlace,jdbcType=VARCHAR },
+   		USER_FACE =  #{userFace,jdbcType=VARCHAR },
+   		USER_IDCARD =  #{userIdcard,jdbcType=VARCHAR },
+   		USER_PIC =  #{userPic,jdbcType=VARCHAR },
+   		DEPT_ID =  #{deptId,jdbcType=VARCHAR },
+   		USER_POSITION =  #{userPosition,jdbcType=VARCHAR },
+   		USER_AGE =  #{userAge,jdbcType=VARCHAR },
+   		USER_BIRTH =  TO_DATE(#{userBirth,jdbcType=VARCHAR },'yyyy-MM-dd'),
+   		ENTRY_DATE =  TO_DATE(#{entryDate,jdbcType=VARCHAR },'yyyy-MM-dd'),
+   		DIPLOMA_SCHOOL =  #{diplomaSchool,jdbcType=VARCHAR },
+   		DIPLOMA_DATE =  TO_DATE(#{diplomaDate,jdbcType=VARCHAR },'yyyy-MM-dd'),
+   		USER_RECORD =  #{userRecord,jdbcType=VARCHAR },
+   		USER_MOBILE =  #{userMobile,jdbcType=VARCHAR },
+   		USER_COUNT =  #{userCount,jdbcType=VARCHAR },
+   		USER_REMARK =  #{userRemark,jdbcType=VARCHAR },
+   		USER_NATURE = #{userNature,jdbcType=VARCHAR },
+   		UPDATE_BY =  #{updateBy,jdbcType=VARCHAR },
+   		UPDATE_DATE = sysdate
+    where USER_CONTACT_ID = #{contactId,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 删除用户角色 -->
+  <delete id="deleteUserRole">
+	delete from PMS_USERROLE where USER_ID=#{userId,jdbcType=VARCHAR}
+  </delete>
+    
+  <!-- 分配用户角色 -->
+  <insert id="saveUserRole">
+	insert into PMS_USERROLE
+	<foreach collection="rvoList" index="index" item="item"
+		separator="UNION">
+		SELECT #{userId} USERID , #{item} ROLEID from dual
+	</foreach>
+  </insert>
+  
+  <!-- 重置密码 -->
+  <update id="resetPassword" parameterType="com.ps.result.systemmanage.UserVo" >
+  	UPDATE PMS_USER 
+	SET USER_PASSWORD=#{userPassword,jdbcType=NVARCHAR},
+	USER_COUNT='0'
+	WHERE ID=#{id,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 通过身份证号查询用户 -->
+  <select id="verificationIdentityCard" resultMap="UserResultMap">
+	SELECT 
+	   <include refid="User_Column_List" />
+	FROM PMS_USER T
+    WHERE 1 = 1
+	AND LOWER(T.USER_IDCARD)=LOWER(#{userIdcard,jdbcType=NVARCHAR})
+  </select>
+  
+  <!-- 修改用户ip -->
+  <update id="updateUserIp" parameterType="com.ps.result.systemmanage.UserVo" >
+  	UPDATE PMS_USER 
+  	set USER_IP=#{userIp,jdbcType=NVARCHAR}
+  	where ID=#{id,jdbcType=DECIMAL}
+  </update>
+  <!-- 根据联系人id删除数据 -->
+  <delete id="deleteUserByContactId">
+  	delete from PMS_USER where USER_CONTACT_ID in
+	<foreach collection="ids" index="index" item="item"  open="(" separator ="," close=")">
+		${item}
+	</foreach>
+  </delete>
+  
+  <!-- 根据联系id删除对应的用户信息 -->
+  <delete id="deleteUserByContactIdPhysical">
+  	delete from PMS_USER where USER_CONTACT_ID = #{contactId,jdbcType=DECIMAL}
+  </delete>
+  
+  <!-- 添加用户角色 -->
+  <insert id="saveUserRoleOneToOne" parameterType="com.ps.result.systemmanage.UserVo">
+  	insert into PMS_USERROLE(USER_ID,ROLE_ID)values(#{userId,jdbcType=VARCHAR },#{roleId,jdbcType=VARCHAR })
+  </insert>
+  
+  <!-- 根据组织架构获取用户信息 -->
+  <select id="queryUserByDept" resultType="java.util.Map">
+  	SELECT to_char(wm_concat(user_name)) userNames,to_char(wm_concat(ID)) userIds 
+  	FROM pms_user WHERE ','||dept_id||','  LIKE '%,'||#{deptId,jdbcType=VARCHAR }||',%'
+  </select>
+</mapper>

@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.taskManage.TaskIssuedManagerDao" >
+   <resultMap id="TaskIssuedResultMap" type="com.ps.result.taskmanage.TaskIssuedVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="RESPONSIBLE" property="responsible" jdbcType="VARCHAR" />
+    <result column="THEME" property="theme" jdbcType="VARCHAR" />
+    <result column="DESCRIBE" property="describe" jdbcType="VARCHAR" />
+    <result column="STATUS" property="status" jdbcType="VARCHAR" />
+    <result column="TASKTYPE" property="tasktype" jdbcType="VARCHAR" />
+    <result column="PRIORITY" property="priority" jdbcType="VARCHAR" />
+    <result column="TASK_BEGIN_DATE" property="taskBeginDate" jdbcType="VARCHAR" />
+    <result column="TASK_END_DATE" property="taskEndDate" jdbcType="VARCHAR" />
+    <result column="WHY_TYPE" property="whyType" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="EXPECTED_TIME" property="expectedTime" jdbcType="VARCHAR" />
+    <result column="ACTUAL_HOUR" property="actualHour" jdbcType="VARCHAR" />
+    <result column="COMPLETE_DEGREE" property="completeDegree" jdbcType="VARCHAR" />
+    <result column="INSTRUCTIONS" property="instructions" jdbcType="VARCHAR" />
+  </resultMap>
+  
+  <sql id="Task_Issued_Column_List" >
+  	ID,
+    RESPONSIBLE,
+    THEME,
+    DESCRIBE,
+    STATUS,
+    TASKTYPE,
+    PRIORITY,
+    to_char(TASK_BEGIN_DATE,'YYYY-MM-DD') TASK_BEGIN_DATE,
+    to_char(TASK_END_DATE,'YYYY-MM-DD') TASK_END_DATE,
+    WHY_TYPE,
+    CREATE_BY,
+    to_char(CREATE_DATE,'YYYY-MM-DD') CREATE_DATE,
+    EXPECTED_TIME,
+    ACTUAL_HOUR,
+    COMPLETE_DEGREE,
+    INSTRUCTIONS
+  </sql>
+  
+  <!-- 根据参数查询列表信息 -->
+  <select id="queryDeptUserTree" resultType="com.ps.result.systemmanage.DeptVo"  parameterType="com.ps.result.systemmanage.DeptVo" >
+   	SELECT (CASE WHEN m.ISUSER='0' THEN 'D'||m.id ELSE 'U'||m.id END)ID ,'D'||m.pid PID,m.name,m.ISUSER
+	  FROM (SELECT ID ID, DEPT_PID PID, DEPT_NAME NAME, '0' ISUSER
+	          FROM PMS_DEPT
+	         WHERE DEPT_FLAG = 0
+	        UNION
+	        SELECT 0 ID, 0 PID, '根目录' NAME, '0' ISUSER
+	          FROM DUAL
+	        UNION
+	        SELECT T1.ID ID, T2.ID PID, T1.USER_NAME NAME, '1' ISUSER
+	          FROM PMS_USER T1
+	          LEFT JOIN PMS_DEPT T2
+	            ON ',' || T1.DEPT_ID || ',' LIKE '%,' || T2.ID || ',%'
+	         WHERE T1.DEPT_ID IS NOT NULL) M
+	 WHERE 1 = 1
+	<!-- 无权限 -->
+	<if test="authority == 0">
+	      and 1!=1
+    </if>
+ 	<!-- 查看个人 -->
+    <if test="authority == 1">
+    	AND (m.isUser ='0' OR m.id=#{authUserId,jdbcType=VARCHAR })
+    </if>
+    <!-- 查看项目 -->
+    <if test="authority == 2 ">
+    	AND (m.isUser ='0' OR ','||#{authDeptId,jdbcType=VARCHAR }||',' like '%,'||m.pId||',%')
+    </if>
+    <!-- 查看部门 -->
+    <if test="authority == 3">
+	   	AND (m.isUser ='0' OR ','||#{authDeptId,jdbcType=VARCHAR }||',' like '%,'||m.pId||',%')
+    </if>
+  </select>
+  
+  <!-- 根据任务ID获取任务信息 -->
+  <select id="queryTaskIssuedById" resultMap="TaskIssuedResultMap">
+  	select 
+    <include refid="Task_Issued_Column_List" />
+    from PMS_TASK_ISSUED
+    where ID =  #{id,jdbcType=DECIMAL }
+  </select>
+  
+  <!-- 新增任务信息 -->
+  <insert id="insertTaskIssued" parameterType="com.ps.result.taskmanage.TaskIssuedVo" >
+	  insert into PMS_TASK_ISSUED
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+    	ID,
+	    RESPONSIBLE,
+	    THEME,
+	    DESCRIBE,
+	    STATUS,
+	    TASKTYPE,
+	    PRIORITY,
+	    TASK_BEGIN_DATE,
+	    TASK_END_DATE,
+	    WHY_TYPE,
+	    CREATE_BY,
+	    CREATE_DATE,
+	    EXPECTED_TIME
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       PMS_TASK_ISSUED_TB_SEQ.Nextval,
+       #{responsible,jdbcType=VARCHAR },
+       #{theme,jdbcType=VARCHAR },
+       #{describe,jdbcType=VARCHAR },
+       #{status,jdbcType=VARCHAR },
+       #{tasktype,jdbcType=VARCHAR },
+       #{priority,jdbcType=VARCHAR },
+       to_date(#{taskBeginDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+       to_date(#{taskEndDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+       #{whyType,jdbcType=VARCHAR },
+       #{createBy,jdbcType=VARCHAR },
+       sysdate,
+       #{expectedTime,jdbcType=VARCHAR },
+    </trim>	
+  </insert>
+  
+  <!-- 根据ID更新任务信息 -->
+  <update id="updateTaskIssued" parameterType="com.ps.result.taskmanage.TaskIssuedVo" >
+  	update PMS_TASK_ISSUED
+    <set >
+   		THEME =  #{theme,jdbcType=VARCHAR },
+   		DESCRIBE =  #{describe,jdbcType=VARCHAR },
+   		STATUS =  #{status,jdbcType=VARCHAR },
+   		TASKTYPE =  #{tasktype,jdbcType=VARCHAR },
+   		PRIORITY =  #{priority,jdbcType=VARCHAR },
+   		TASK_BEGIN_DATE = to_date(#{taskBeginDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+   		TASK_END_DATE =  to_date(#{taskEndDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+   		WHY_TYPE =  #{whyType,jdbcType=VARCHAR },
+   		EXPECTED_TIME =  #{expectedTime,jdbcType=VARCHAR }
+    </set>
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 根据部门ID加载所有任务信息 -->
+  <select id="queryTaskIssendByDeptId" resultMap="TaskIssuedResultMap">
+	SELECT t1.ID,
+	       t1.RESPONSIBLE,
+	       t1.THEME,
+	       t1.DESCRIBE,
+	       t1.STATUS,
+	       t1.TASKTYPE,
+	       t1.PRIORITY,
+	       TO_CHAR(t1.TASK_BEGIN_DATE, 'YYYY-MM-DD') TASK_BEGIN_DATE,
+	       TO_CHAR(t1.TASK_END_DATE, 'YYYY-MM-DD') TASK_END_DATE,
+	       t1.WHY_TYPE,
+	       t1.CREATE_BY,
+	       TO_CHAR(t1.CREATE_DATE, 'YYYY-MM-DD') CREATE_DATE,
+	       t1.EXPECTED_TIME,
+	       t1.ACTUAL_HOUR,
+	       t1.COMPLETE_DEGREE,
+	       t1.INSTRUCTIONS
+	  FROM PMS_TASK_ISSUED t1
+	LEFT JOIN pms_user t2 ON t1.responsible=t2.id
+	WHERE 1=1
+   	<if test="deptIds != null and deptIds != '' and deptIds != 'null' ">
+   	  AND (
+	  <foreach collection="deptIds.split(',')" item="deptId" index="index"
+	      open="" close="" separator="or">
+	      (','||t2.DEPT_ID||',' like '%,'||#{deptId,jdbcType=VARCHAR}||',%')
+	  </foreach>
+	  )
+    </if>
+    <if test="deptIds == null or deptIds == '' or deptIds == 'null' ">
+	  AND 1!=1
+	</if>
+	<if test="taskStatus != null and taskStatus != '' and taskStatus != 'null' ">
+	  AND t1.STATUS in (${taskStatus})
+	</if>
+  </select>
+  
+  <!-- 根据用户ID加载所有任务信息 -->
+  <select id="queryTaskIssendByUserId" resultMap="TaskIssuedResultMap">
+  	SELECT ID,
+       RESPONSIBLE,
+       THEME,
+       DESCRIBE,
+       STATUS,
+       TASKTYPE,
+       PRIORITY,
+       TO_CHAR(TASK_BEGIN_DATE, 'YYYY-MM-DD') TASK_BEGIN_DATE,
+       TO_CHAR(TASK_END_DATE, 'YYYY-MM-DD') TASK_END_DATE,
+       WHY_TYPE,
+       CREATE_BY,
+       TO_CHAR(CREATE_DATE, 'YYYY-MM-DD') CREATE_DATE,
+       EXPECTED_TIME,
+       ACTUAL_HOUR,
+       COMPLETE_DEGREE,
+       INSTRUCTIONS
+  FROM PMS_TASK_ISSUED t1
+	WHERE t1.responsible=#{userId,jdbcType=VARCHAR}
+	<if test="taskStatus != null and taskStatus != '' and taskStatus != 'null' ">
+	  AND t1.STATUS in (${taskStatus})
+	</if>
+  </select>
+  
+  <!-- 根据部门ID加载所有用户信息 -->
+  <select id="queryUserByDeptIds" resultType="com.ps.result.systemmanage.UserVo">
+  	SELECT 
+	T1.USER_NAME userName, T1.ID id
+	FROM PMS_USER T1
+	WHERE 1=1
+	<if test="deptIds != null and deptIds != '' and deptIds != 'null' ">
+   	  AND (
+	  <foreach collection="deptIds.split(',')" item="deptId" index="index"
+	      open="" close="" separator="or">
+	      (','||T1.DEPT_ID||',' like '%,'||#{deptId,jdbcType=VARCHAR}||',%')
+	  </foreach>
+	  )
+    </if>
+    <if test="deptIds == null or deptIds == '' or deptIds == 'null' ">
+	  AND 1!=1
+	</if>
+  </select>
+  
+  <!-- 根据ID删除任务信息 -->
+  <delete id="deleteTaskIssuedById">
+  	delete PMS_TASK_ISSUED where id=#{id,jdbcType=DECIMAL}
+  </delete>
+  
+  <!-- 根据ID更新我的任务信息 -->
+  <update id="updateMyTask" parameterType="com.ps.result.taskmanage.TaskIssuedVo" >
+	update PMS_TASK_ISSUED
+    <set >
+   		STATUS =  #{status,jdbcType=VARCHAR },
+   		ACTUAL_HOUR =  #{actualHour,jdbcType=VARCHAR },
+   		COMPLETE_DEGREE =  #{completeDegree,jdbcType=VARCHAR },
+   		INSTRUCTIONS =  #{instructions,jdbcType=VARCHAR }
+    </set>
+    where ID = #{id,jdbcType=DECIMAL} 	
+  </update>
+  
+</mapper>

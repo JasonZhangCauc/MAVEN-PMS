@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.performancemanager.MonthReportManagerDao" >
+  <resultMap id="MonthReportResultMap" type="com.ps.result.performancemanage.MonthReportVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="PRO_ID" property="proId" jdbcType="VARCHAR" />
+    <result column="PRO_ATTENDEES" property="proAttendees" jdbcType="VARCHAR" />
+    <result column="PRO_REPORTER" property="proReporter" jdbcType="VARCHAR" />
+    <result column="REPORT_MONTH" property="reportMonth" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="UPDATE_BY" property="updateBy" jdbcType="VARCHAR" />
+    <result column="UPDATE_DATE" property="updateDate" jdbcType="VARCHAR" />
+    <result column="REPORTER_STATUS" property="reporterStatus" jdbcType="VARCHAR" />
+    <result column="PRO_REPORTER_NAME" property="proReporterName" jdbcType="VARCHAR" />
+    <result column="PRO_NUM" property="proNum" jdbcType="VARCHAR" />
+    <result column="BELONG_CUSTOMER" property="belongCustomer" jdbcType="VARCHAR" />
+    <result column="BELONG_PRODUCT" property="belongProduct" jdbcType="VARCHAR" />
+  </resultMap>
+  <!--查询字段 所有的表字段-->
+  <sql id="MonthReport_Column_List" >
+    ID,
+    PRO_NUM,
+    PRO_ATTENDEES,
+    PRO_REPORTER,
+    to_char(REPORT_MONTH,'yyyy-MM') REPORT_MONTH,
+    CREATE_BY,
+    to_char(CREATE_DATE,'yyyy-MM-dd') CREATE_DATE,
+    UPDATE_BY,
+    to_char(UPDATE_DATE,'yyyy-MM-dd') UPDATE_DATE,
+    REPORTER_STATUS,
+    PRO_REPORTER_NAME,
+    PRO_ID,
+    BELONG_CUSTOMER,
+    BELONG_PRODUCT
+  </sql>
+  
+  <!-- 根据参数查询列表信息 -->
+  <select id="queryMonthReportInfoByParam" resultMap="MonthReportResultMap" parameterType="com.ps.result.performancemanage.MonthReportVo" >
+    select
+    <include refid="MonthReport_Column_List" />
+    from (
+       SELECT T1.ID,
+       T1.PRO_ID,
+       T1.PRO_ATTENDEES,
+       T1.PRO_REPORTER,
+       T1.REPORT_MONTH,
+       T1.CREATE_BY,
+       T1.CREATE_DATE,
+       T1.UPDATE_BY,
+       T1.UPDATE_DATE,
+       T1.REPORTER_STATUS,
+       T2.USER_NAME       PRO_REPORTER_NAME,
+       T3.PROJECT_NO      PRO_NUM,
+       T4.CUSTOM_NAME     BELONG_CUSTOMER,
+       T5.CODE_ZH         BELONG_PRODUCT
+	  FROM PMS_MONTH_REPORT T1
+	  LEFT JOIN PMS_USER T2
+	    ON T1.PRO_REPORTER = T2.ID
+	  LEFT JOIN PMS_PROJECT T3
+	    ON T1.PRO_ID = T3.ID
+	  LEFT JOIN PMS_CUSTOMER T4
+	    ON T3.BELONG_CUSTOMERID = T4.ID
+	  LEFT JOIN PMS_CODE T5
+	    ON T3.BELONG_PRODUCT = T5.CODE_VALUE
+	   AND T5.CODE_TYPE = 'PRODUCT'
+	  LEFT JOIN pms_user t6
+		ON t1.create_by=t6.id
+	  where 1=1
+	  <if test="belongCustomer != null and belongCustomer != ''">
+   		and T3.BELONG_CUSTOMERID in (${belongCustomer})
+      </if>
+      <if test="belongProduct != null and belongProduct != ''">
+    	and T3.BELONG_PRODUCT in (${belongProduct})
+      </if>
+      <!-- 查看个人 -->
+      <if test="authority == 1">
+    	and t6.id = #{authUserId,jdbcType=VARCHAR }
+      </if>
+      <!-- 查看部门 -->
+      <if test="authority == 2">
+    	and t6.dept_id in (${authDeptId})
+      </if>
+    )f
+    where 1=1
+    and f.REPORTER_STATUS=0
+    <if test="proNum != null and proNum != ''">
+    	and f.PRO_NUM like '%'||#{proNum,jdbcType=VARCHAR }||'%'
+    </if>
+    <if test="proReporterName != null and proReporterName != ''">
+    	and f.PRO_REPORTER_NAME like '%'||#{proReporterName,jdbcType=VARCHAR }||'%'
+    </if>
+    <if test="reportBeginMonth != null and reportBeginMonth != ''">
+    	and f.REPORT_MONTH >= to_date(#{reportBeginMonth,jdbcType=VARCHAR },'YYYY-MM')
+    </if>
+    <if test="reportEndMonth != null and reportEndMonth != ''">
+    	and to_date(#{reportEndMonth,jdbcType=VARCHAR },'YYYY-MM') >=f.REPORT_MONTH 
+    </if>
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by f.CREATE_DATE DESC
+		</otherwise>
+	</choose>
+  </select>
+  
+  <!-- 根据ID查询列表信息 -->
+  <select id="queryMonthReportById" resultMap="MonthReportResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="MonthReport_Column_List" />
+    from (
+       SELECT T1.ID,
+       T1.PRO_ID,
+       T1.PRO_ATTENDEES,
+       T1.PRO_REPORTER,
+       T1.REPORT_MONTH,
+       T1.CREATE_BY,
+       T1.CREATE_DATE,
+       T1.UPDATE_BY,
+       T1.UPDATE_DATE,
+       T1.REPORTER_STATUS,
+       T2.USER_NAME       PRO_REPORTER_NAME,
+       T3.PROJECT_NO      PRO_NUM,
+       T4.CUSTOM_NAME     BELONG_CUSTOMER,
+       T5.CODE_ZH         BELONG_PRODUCT
+	  FROM PMS_MONTH_REPORT T1
+	  LEFT JOIN PMS_USER T2
+	    ON T1.PRO_REPORTER = T2.ID
+	  LEFT JOIN PMS_PROJECT T3
+	    ON T1.PRO_ID = T3.ID
+	  LEFT JOIN PMS_CUSTOMER T4
+	    ON T3.BELONG_CUSTOMERID = T4.ID
+	  LEFT JOIN PMS_CODE T5
+	    ON T3.BELONG_PRODUCT = T5.CODE_VALUE
+	   AND T5.CODE_TYPE = 'PRODUCT'
+    )f
+    where f.ID =  #{id,jdbcType=DECIMAL }
+  </select>
+  
+  <!-- 新增信息 -->
+  <insert id="insertMonthReport" parameterType="com.ps.result.performancemanage.MonthReportVo" >
+    insert into PMS_MONTH_REPORT
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+	    ID,
+	    PRO_ID,
+	    PRO_ATTENDEES,
+	    PRO_REPORTER,
+	    REPORT_MONTH,
+	    CREATE_BY,
+	    CREATE_DATE,
+	    UPDATE_BY,
+	    UPDATE_DATE,
+	    REPORTER_STATUS
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       PMS_MONTH_REPORT_SEQ.NEXTVAL,
+       #{proId,jdbcType=VARCHAR },
+       #{proAttendees,jdbcType=VARCHAR },
+       #{proReporter,jdbcType=VARCHAR },
+       to_date(#{reportMonth,jdbcType=VARCHAR },'yyyy-MM'),
+       #{createBy,jdbcType=VARCHAR },
+       sysdate,
+       #{updateBy,jdbcType=VARCHAR },
+       sysdate,
+       0
+    </trim>
+  </insert>
+  
+  <!-- 修改信息 -->
+  <update id="updateMonthReport" parameterType="com.ps.result.performancemanage.MonthReportVo" >
+    update PMS_MONTH_REPORT
+    set
+   		PRO_ID =  #{proId,jdbcType=VARCHAR },
+   		PRO_ATTENDEES =  #{proAttendees,jdbcType=VARCHAR },
+   		PRO_REPORTER =  #{proReporter,jdbcType=VARCHAR },
+   		REPORT_MONTH =  to_date(#{reportMonth,jdbcType=VARCHAR },'yyyy-MM'),
+		UPDATE_BY =  #{updateBy,jdbcType=VARCHAR },
+    	UPDATE_DATE =  #{updateDate,jdbcType=VARCHAR }
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 根据ID删除信息 -->
+  <update id="updateMonthReportStatus" parameterType="java.lang.String" >
+    update PMS_MONTH_REPORT set REPORTER_STATUS=1
+    where ID =  #{id,jdbcType=DECIMAL }
+  </update>
+</mapper>

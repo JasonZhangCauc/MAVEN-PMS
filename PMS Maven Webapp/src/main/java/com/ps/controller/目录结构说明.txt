@@ -1,0 +1,20 @@
+1、包名说明：
+	工作台【工作单、投诉与建议】 workbenchManage
+	售前管理【客户维护、销售跟踪】 preSalesManage
+	合同管理【合同维护、合同审批、收款节点管理、合同执行情况】 pactManage
+	项目管理【项目立项、项目监控、实施监控、跟踪表、报告管理、资源管理、项目维护】 projectManage
+	质量管理【质量控制、文档管理、管理手册】qualityManage
+	培训管理【带教计划、培训计划、晋级管理】 trainManage
+	任务管理【督办管理、任务控制台、我的任务、工时登记】 taskManage
+	会议管理【会议室、会议管理】 meetingManage
+	绩效管理【绩效档案、绩效积分、绩效合约、年度计划】 performanceManage
+	团建管理【活动策划、活动计划】 leagueManage
+	报销管理【差旅报销、打车报销】 applyManage
+	考勤管理【出勤记录、请假管理】 checkinginManage
+	统计分析 statisticsAnalyze
+	系统管理 systemManage
+	公共 common
+	首页 home
+2、要求：
+           包名全部小写，实质意义
+           类名首字母大写，驼峰命名规则，后缀加Controller	

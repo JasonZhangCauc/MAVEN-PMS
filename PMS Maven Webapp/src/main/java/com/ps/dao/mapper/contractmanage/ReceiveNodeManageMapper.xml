@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.contractmanage.ReceiveNodeManageDao" >
+  <!-- 收款节点映射类 -->
+  <resultMap id="NodeResultMap" type="com.ps.result.contractmanage.ReceiveNodeVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="UPDATE_BY" property="updateBy" jdbcType="VARCHAR" />
+    <result column="UPDATE_DATE" property="updateDate" jdbcType="VARCHAR" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="RECEIVABLES_NO" property="receivablesNo" jdbcType="VARCHAR" />
+    <result column="RECEIVABLES_NAME" property="receivablesName" jdbcType="VARCHAR" />
+    <result column="PROJECT_STAGE" property="projectStage" jdbcType="VARCHAR" />
+    <result column="RECEIVABLE_AMOUNT" property="receivableAmount" jdbcType="VARCHAR" />
+    <result column="RECEIVABLE_DATE" property="receivableDate" jdbcType="VARCHAR" />
+    <result column="RECEIVABLE_STATUS" property="receivableStatus" jdbcType="VARCHAR" />
+    <result column="RESPONSIBLE_BY" property="responsibleBy" jdbcType="VARCHAR" />
+    <result column="RESPONSIBLE_NAME" property="responsibleName" jdbcType="VARCHAR" />
+    <result column="BILLING_DATE" property="billingDate" jdbcType="VARCHAR" />
+    <result column="BILLING_BY" property="billingBy" jdbcType="VARCHAR" />
+    <result column="PAYMENT_REMARK" property="paymentRemark" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="CONTRACT_ID" property="contractId" jdbcType="VARCHAR" />
+    <result column="STATUS" property="STATUS" jdbcType="VARCHAR" />
+  </resultMap>
+  <!--查询收款节点字段 所有的表字段-->
+  <sql id="Node_Column_List" >
+    UPDATE_BY,
+    UPDATE_DATE,
+    ID,
+    RECEIVABLES_NO,
+    RECEIVABLES_NAME,
+    PROJECT_STAGE,
+    RECEIVABLE_AMOUNT,
+    to_char(RECEIVABLE_DATE,'yyyy-mm-dd') receivableDate,
+    RECEIVABLE_STATUS,
+    RESPONSIBLE_BY,
+    (SELECT user_name FROM  PMS_USER WHERE ID=a.RESPONSIBLE_BY) RESPONSIBLE_NAME,
+    to_char(BILLING_DATE,'yyyy-mm-dd') billingDate,
+    BILLING_BY,
+    PAYMENT_REMARK,
+    CREATE_DATE,
+    CONTRACT_ID
+  </sql>
+  <!-- 根据参数查询收款节点信息 -->
+  <select id="queryReceiveNodeInfoByParam" resultMap="NodeResultMap" parameterType="com.ps.result.contractmanage.ReceiveNodeVo">
+    select
+    (SELECT user_name FROM  PMS_USER WHERE ID=a.CREATE_BY) createBy,    
+     <include refid="Node_Column_List" />
+    from PMS_RECEIVABLES a
+    where status=0
+    and CONTRACT_ID=#{contractId,jdbcType=VARCHAR }   
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by CREATE_DATE DESC
+		</otherwise>
+	 </choose>  
+  </select>
+  
+  <!-- 根据ID查询收款节点信息 -->
+  <select id="queryReceiveNodeById" resultMap="NodeResultMap" parameterType="java.lang.String" >
+    select
+    <include refid="Node_Column_List" />
+    from PMS_RECEIVABLES a
+    where ID =  #{id,jdbcType=DECIMAL }
+  </select>
+  
+  <!-- 新增收款节点信息 -->
+  <insert id="insertReceiveNode" parameterType="com.ps.result.contractmanage.ReceiveNodeVo" >
+    insert into PMS_RECEIVABLES
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+	    ID,
+	    UPDATE_BY,
+	    UPDATE_DATE,
+	    RECEIVABLES_NO,
+	    RECEIVABLES_NAME,
+	    PROJECT_STAGE,
+	    RECEIVABLE_AMOUNT,
+	    RECEIVABLE_DATE,
+	    RECEIVABLE_STATUS,
+	    RESPONSIBLE_BY,
+	    BILLING_DATE,
+	    BILLING_BY,
+	    PAYMENT_REMARK,
+	    CREATE_BY,
+	    CREATE_DATE,
+	    CONTRACT_ID,
+	    STATUS
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       PMS_RECEIVABLES_TB_SEQ.NEXTVAL,
+       #{updateBy,jdbcType=VARCHAR },
+       sysdate,
+       #{receivablesNo,jdbcType=VARCHAR },
+       #{receivablesName,jdbcType=VARCHAR },
+       #{projectStage,jdbcType=VARCHAR },
+       #{receivableAmount,jdbcType=VARCHAR },
+       to_date(#{receivableDate,jdbcType=VARCHAR },'yyyy-mm-dd'),
+       #{receivableStatus,jdbcType=VARCHAR },
+       #{responsibleBy,jdbcType=VARCHAR },
+       to_date(#{billingDate,jdbcType=VARCHAR },'yyyy-mm-dd'),
+       #{billingBy,jdbcType=VARCHAR },
+       #{paymentRemark,jdbcType=VARCHAR },
+       #{createBy,jdbcType=VARCHAR },
+       sysdate,
+       #{contractId,jdbcType=VARCHAR },
+       0
+    </trim>
+  </insert>
+  
+  <!-- 修改收款节点信息 -->
+  <update id="updateReceiveNode" parameterType="com.ps.result.contractmanage.ReceiveNodeVo" >
+    update PMS_RECEIVABLES
+    <set >
+    		UPDATE_BY =  #{updateBy,jdbcType=VARCHAR },
+
+    		UPDATE_DATE = sysdate,
+
+    		RECEIVABLES_NO =  #{receivablesNo,jdbcType=VARCHAR },
+
+    		RECEIVABLES_NAME =  #{receivablesName,jdbcType=VARCHAR },
+	
+    		PROJECT_STAGE =  #{projectStage,jdbcType=VARCHAR },
+
+    		RECEIVABLE_AMOUNT =  #{receivableAmount,jdbcType=VARCHAR },
+
+    		RECEIVABLE_DATE =  to_date(#{receivableDate,jdbcType=VARCHAR },'yyyy-mm-dd'),
+
+    		RECEIVABLE_STATUS =  #{receivableStatus,jdbcType=VARCHAR },
+
+    		RESPONSIBLE_BY =  #{responsibleBy,jdbcType=VARCHAR },
+
+    		BILLING_DATE = to_date(#{billingDate,jdbcType=VARCHAR },'yyyy-mm-dd'),
+    		
+    		BILLING_BY =  #{billingBy,jdbcType=VARCHAR },
+
+    		PAYMENT_REMARK =  #{paymentRemark,jdbcType=VARCHAR }
+    </set>
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 根据ID删除收款节点信息 -->
+  <delete id="deleteReceiveNodeById" parameterType="java.lang.String" >
+    update PMS_RECEIVABLES set status=1
+    where ID =  #{id,jdbcType=DECIMAL }
+  </delete>
+  <!-- 根据项目所属合同查询项目编号最大值 -->
+  <select id="getMaxNodeNum" resultType="java.lang.String" parameterType="com.ps.result.contractmanage.ReceiveNodeVo" >           
+      SELECT MAX(RECEIVABLES_NO)  FROM  PMS_RECEIVABLES 
+      WHERE  CONTRACT_ID  in         		
+      (select id from PMS_CONTRACT  where 
+       BELONG_PRODUCT =  #{belongProduct,jdbcType=VARCHAR }
+       and BELONG_CUSTOMERID =  #{belongCustomerid,jdbcType=VARCHAR })
+  </select>
+  <!-- 根据所属客户ID获取客户简码 -->
+  <select id="getCustomCode" resultType="java.lang.String" parameterType="java.lang.String" >
+     SELECT custom_code  FROM  PMS_CUSTOMER
+     WHERE ID= #{belongCustomerid,jdbcType=VARCHAR}     
+  </select>
+</mapper>

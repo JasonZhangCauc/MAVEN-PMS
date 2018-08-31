@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ps.dao.common.UserDao">
+	
+	<!-- 根据用户获取该用户下所有角色  -->
+	<select id="getUserRolesByUserAccount" resultType="java.lang.String">
+		SELECT 
+		 R.ID ROLE
+		 FROM PMS_USER U, PMS_USERROLE UR, PMS_ROLE R
+		 WHERE 1=1
+		 AND U.ID = UR.USER_ID
+		 AND R.ID = UR.ROLE_ID
+		 AND U.USER_FLAG = '0'
+		 AND R.ROLE_FLAG = '0'
+		 AND U.USER_ACCOUNT = #{userAccount,jdbcType=NVARCHAR}
+	</select>
+	
+	<!-- 根据角色获取角色所关联的所有资源  -->
+	<select id="getUserResources" parameterType="java.util.HashMap" resultType="com.ps.result.systemmanage.ResourceVo">
+		SELECT DISTINCT 
+            T.ID id,
+			T.RESOURCE_URL resourceUrl,
+			T.RESOURCE_TYPE resourceType ,
+			T.RESOURCE_DESCCH resourceDescch,
+			T.RESOURCE_DESCEN resourceDescen,
+			T.RESOURCE_PID pId,
+			T.RESOURCE_ICON resourceIcon,
+			T.RESOURCE_CODE resourceCode,
+			T.resource_order resourceOrder
+		FROM  PMS_RESOURCE T,PMS_ROLERESOURCE T1,PMS_ROLE T2
+	 	WHERE 1=1
+	 	AND T.ID=t1.RESOURCE_ID
+	 	AND　T1.ROLE_ID = T2.ID
+	 	AND T.RESOURCE_ISSHOW = '0'
+		<if test="roleList != null">
+			<foreach close=")" collection="roleList" index="index" item="item" open="AND t2.ID IN (" separator=",">
+				#{item}
+			</foreach>
+		</if>
+		ORDER BY T.RESOURCE_ORDER ASC
+	</select>
+	
+	<!-- 查询用户拥有资源的数量 -->
+	<select id="getByLoginIdandResourceCode" parameterType="map" resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM PMS_USERROLE U,PMS_ROLERESOURCE UR,PMS_RESOURCE P 
+            WHERE U.ROLE_ID=UR.ROLE_ID AND UR.RESOURCE_ID=P.ID
+		<if test="resourceCode!=null and resourceCode!=''">
+  			 AND P.RESOURCE_CODE = #{resourceCode,jdbcType=NVARCHAR}
+  		</if>
+ 		<if test="userId != null and userId!=''">
+  			and U.USER_ID=#{userId,jdbcType=DECIMAL}
+  		</if>
+	</select>
+	
+	<!--根据用户ID查询角色用户关系表-->
+	<select id="queryUserRoleByUserId"  resultType="com.ps.result.systemmanage.UserRoleVo">
+		SELECT T.USER_ID userId, T.ROLE_ID roleId FROM PMS_USERROLE T 
+		WHERE T.USER_ID=#{userId,jdbcType=DECIMAL}
+	</select>
+	
+	<!-- 根据用户ID及菜单Code查询所有按钮权限 -->
+	<select id="getUserAuthByMenuCode" parameterType="java.util.Map" resultType="java.lang.String">
+		SELECT distinct t.RESOURCE_CODE 
+		FROM PMS_RESOURCE t, PMS_ROLERESOURCE t1,PMS_USERROLE t2 
+		WHERE t.ID=t1.RESOURCE_ID 
+			AND t1.ROLE_ID=t2.ROLE_ID 
+			AND t2.USER_ID=#{userId}
+			AND t.RESOURCE_CODE not LIKE '%_DATA_%'
+			AND t.RESOURCE_PID in (
+				select m.ID from PMS_RESOURCE m where m.RESOURCE_CODE=#{sourceCode}
+			)
+	</select>
+	
+	<!-- 根据用户ID及菜单ID查询最大查看权限值 -->
+	<select id="getMaxViewAuthorityByMenuCode" parameterType="java.util.Map" resultType="java.lang.String">
+		SELECT  MAX(t.RESOURCE_CODE) 
+		FROM PMS_RESOURCE t, PMS_ROLERESOURCE t1,PMS_USERROLE t2 
+		WHERE t.ID=t1.RESOURCE_ID 
+			AND t1.ROLE_ID=t2.ROLE_ID 
+			AND t2.USER_ID=#{userId}
+			AND t.RESOURCE_CODE LIKE '%_DATA_%'
+			AND t.RESOURCE_PID in (
+				select m.ID from PMS_RESOURCE m where m.RESOURCE_CODE=#{sourceCode}
+			)
+	</select>
+</mapper>

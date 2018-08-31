@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.taskManage.AdjustRecordDao" >
+  <resultMap id="AdjustRecordResultMap" type="com.ps.result.taskmanage.AdjustRecordVo" >
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    
+    <result column="ADJUST_OLD_TIME" property="adjustOldTime" jdbcType="VARCHAR" />
+    <result column="ADJUST_LAST_TIME" property="adjustLastTime" jdbcType="VARCHAR" />
+    <result column="ADJUST_WHY" property="adjustWhy" jdbcType="VARCHAR" />
+    <result column="ADJUST_PERSON" property="adjustPerson" jdbcType="VARCHAR" />
+    <result column="ADJUST_TIME" property="adjustTime" jdbcType="VARCHAR" />
+    <result column="OVERSEE_ADJUST_ID" property="overseeAdjustId" jdbcType="VARCHAR" />
+    <result column="adjustPersonName" property="adjustPersonName" jdbcType="VARCHAR" />
+  </resultMap>
+  <!--查询字段 所有的表字段-->
+  <sql id="Base_Column_List" >
+    ID,
+    to_char(ADJUST_OLD_TIME,'yyyy-mm-dd') ADJUST_OLD_TIME,
+    to_char(ADJUST_LAST_TIME,'yyyy-mm-dd') ADJUST_LAST_TIME,
+    to_char(ADJUST_TIME,'yyyy-mm-dd') ADJUST_TIME,
+    ADJUST_WHY,
+    ADJUST_PERSON,
+    OVERSEE_ADJUST_ID
+  </sql>
+  
+  <!-- 添加调整记录 -->
+  <insert id="insertAdjustRecord" parameterType="com.ps.result.taskmanage.AdjustRecordVo">
+  	insert into PMS_ADJUST_RECORD
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+	    ID,
+	    ADJUST_OLD_TIME,
+	    ADJUST_LAST_TIME,
+	    ADJUST_WHY,
+	    ADJUST_PERSON,
+	    ADJUST_TIME,
+	    OVERSEE_ADJUST_ID
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       PMS_ADJUST_RECORDNEW.nextval,
+       to_date(#{adjustOldTime,jdbcType=VARCHAR },'yyyy-mm-dd'),
+       to_date(#{adjustLastTime,jdbcType=VARCHAR },'yyyy-mm-dd'),
+       #{adjustWhy,jdbcType=VARCHAR },
+       #{adjustPerson,jdbcType=VARCHAR },
+       sysdate,
+       #{overseeAdjustId,jdbcType=VARCHAR }
+    </trim>
+  </insert>
+  
+  <!--  -->
+	
+  <select id="queryAdjustRecordVoByParam" resultMap="AdjustRecordResultMap" parameterType="com.ps.result.taskmanage.AdjustRecordVo">
+  	select * from(
+	    SELECT
+		f1.ID,
+		f1.ADJUST_WHY,
+		f1.ADJUST_PERSON,
+		to_char((SELECT wm_concat(t1.user_name) FROM pms_user t1 WHERE ','||f1.ADJUST_PERSON||',' LIKE '%,'||t1.id||',%'))adjustPersonName,
+		to_char(f1.ADJUST_OLD_TIME,'yyyy-mm-dd') ADJUST_OLD_TIME,
+		to_char(f1.ADJUST_LAST_TIME,'yyyy-mm-dd') ADJUST_LAST_TIME,
+		to_char(f1.ADJUST_TIME,'yyyy-mm-dd') ADJUST_TIME,
+		f1.OVERSEE_ADJUST_ID
+		from PMS_ADJUST_RECORD f1
+		where 1=1
+	)m
+	where 1=1
+	<if test="overseeAdjustId !=null and overseeAdjustId !=''">
+		and m.OVERSEE_ADJUST_ID= #{overseeAdjustId}
+	</if>
+	<if test="overseeAdjustId ==null or overseeAdjustId ==''">
+		and 1 != 1
+	</if>
+	
+	<choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by m.CREATE_DATE DESC
+		</otherwise>
+	 </choose>
+  	
+  </select>	  
+  
+</mapper>

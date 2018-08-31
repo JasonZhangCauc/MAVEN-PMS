@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<!-- 其他成本Vo类 -->
+<mapper namespace="com.ps.dao.projectmanage.OtherCostManagerDao" >
+  <resultMap id="OtherCostResultMap" type="com.ps.result.projectmanage.OtherCostManagerVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="PROJECT_ID" property="projectId" jdbcType="VARCHAR" />
+    <result column="PROJECT_NAME" property="projectName" jdbcType="VARCHAR" />
+    <result column="COST_SPORTS" property="costSports" jdbcType="VARCHAR" />
+    <result column="COST_EVENTS" property="costEvents" jdbcType="VARCHAR" />
+    <result column="TOTAL_AMOUNT" property="totalAmount" jdbcType="VARCHAR" />
+    <result column="CURRENCY" property="currency" jdbcType="VARCHAR" />
+    <result column="BEGIN_DATE" property="beginDate" jdbcType="VARCHAR" />
+    <result column="END_DATE" property="endDate" jdbcType="VARCHAR" />
+    <result column="PEOPLE_CONCERNED" property="peopleConcerned" jdbcType="VARCHAR" />
+    <result column="WHETHER_INVOICE" property="whetherInvoice" jdbcType="VARCHAR" />
+    <result column="COST_DESCRIBE" property="costDescribe" jdbcType="VARCHAR" />
+    <result column="REMARK" property="remark" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="UPDATE_BY" property="updateBy" jdbcType="VARCHAR" />
+    <result column="UPDATE_DATE" property="updateDate" jdbcType="VARCHAR" />
+    <result column="PROJECT_NO" property="projectNo" jdbcType="VARCHAR" />
+    <result column="CREATE_BY_NAME" property="createByName" jdbcType="VARCHAR" />
+    <result column="PEOPLE_NAME" property="peopleName" jdbcType="VARCHAR" />
+    <result column="CREATE_DEPT" property="createDept" jdbcType="VARCHAR" />
+  </resultMap>
+  <!--查询字段 所有的表字段-->
+  <sql id="OtherCost_Column_List" >
+    ID,
+    PROJECT_ID,
+    COST_SPORTS,
+    COST_EVENTS,
+    TOTAL_AMOUNT,
+    CURRENCY,
+    to_char(BEGIN_DATE,'YYYY-MM-DD') BEGIN_DATE,
+    to_char(END_DATE,'YYYY-MM-DD') END_DATE,
+    PEOPLE_CONCERNED,
+    WHETHER_INVOICE,
+    COST_DESCRIBE,
+    REMARK,
+    CREATE_BY,
+    to_char(CREATE_DATE,'YYYY-MM-DD') CREATE_DATE,
+    UPDATE_BY,
+    to_char(UPDATE_DATE,'YYYY-MM-DD') UPDATE_DATE,
+    PROJECT_NO,
+    PROJECT_NAME,
+    CREATE_BY_NAME,
+    PEOPLE_NAME,
+    CREATE_DEPT
+  </sql>
+  
+  <!-- 根据参数查询列表信息 -->
+  <select id="queryOtherCostManagerInfoByParam" resultMap="OtherCostResultMap" parameterType="com.ps.result.projectmanage.OtherCostManagerVo" >
+    select
+    <include refid="OtherCost_Column_List" />
+    from (
+    	SELECT 
+	    t1.ID,
+	    t1.PROJECT_ID,
+	    t1.COST_SPORTS,
+	    t1.COST_EVENTS,
+	    t1.TOTAL_AMOUNT,
+	    t1.CURRENCY,
+	    t1.BEGIN_DATE,
+	    t1.END_DATE,
+	    t1.PEOPLE_CONCERNED,
+	    t1.WHETHER_INVOICE,
+	    t1.COST_DESCRIBE,
+	    t1.REMARK,
+	    t1.CREATE_BY,
+	    t1.CREATE_DATE,
+	    t1.UPDATE_BY,
+	    t1.UPDATE_DATE,
+		t2.project_no PROJECT_NO,
+		t2.project_name PROJECT_NAME,
+		t3.user_name PEOPLE_NAME,
+		t4.user_name CREATE_BY_NAME,
+		t4.dept_id CREATE_DEPT
+		from PMS_OTHER_COST t1
+		LEFT JOIN pms_project t2 ON t1.project_id=t2.id
+		LEFT JOIN pms_user t3 ON t1.people_concerned=t3.id
+		LEFT JOIN pms_user t4 ON t1.create_by =t4.id
+    )f
+    where 1=1
+    <if test="projectNo != null and projectNo != ''">
+	  AND f.PROJECT_NO LIKE '%'||#{projectNo}||'%'
+    </if>
+    <if test="projectName != null and projectName != ''">
+	  AND f.PROJECT_NAME LIKE '%'||#{projectName}||'%'
+    </if>
+    <if test="costSports != null and costSports != '' and costSports!='null'">
+	  AND f.COST_SPORTS IN (${costSports})
+    </if>
+    <if test="costEvents != null and costEvents != '' and costEvents!='null'">
+	  AND f.COST_EVENTS IN (${costEvents})
+    </if>
+    <if test="peopleName != null and peopleName != ''">
+	  AND f.PEOPLE_NAME LIKE '%'||#{peopleName}||'%'
+    </if>
+    <if test="startTime != null and startTime != '' and endTime != null and endTime != '' ">
+    	<![CDATA[
+	  		AND ((to_date(#{startTime,jdbcType=VARCHAR },'YYYY-MM-DD') >= f.BEGIN_DATE 
+	  		AND to_date(#{startTime,jdbcType=VARCHAR },'YYYY-MM-DD') <= f.END_DATE)
+	  		OR (to_date(#{endTime,jdbcType=VARCHAR },'YYYY-MM-DD') >= f.BEGIN_DATE 
+	  		AND to_date(#{endTime,jdbcType=VARCHAR },'YYYY-MM-DD') <= f.END_DATE))
+		]]>
+    </if>
+    <if test="startTime != null and startTime != '' and (endTime == null or endTime == '')">
+    	<![CDATA[
+    		AND to_date(#{startTime,jdbcType=VARCHAR },'YYYY-MM-DD') >= f.BEGIN_DATE 
+	  		AND to_date(#{startTime,jdbcType=VARCHAR },'YYYY-MM-DD') <= f.END_DATE
+    	]]>
+    </if>
+    <if test="endTime != null and endTime != '' and (startTime == null or startTime == '')">
+       	<![CDATA[
+       		AND to_date(#{endTime,jdbcType=VARCHAR },'YYYY-MM-DD') >= f.BEGIN_DATE 
+	  		AND to_date(#{endTime,jdbcType=VARCHAR },'YYYY-MM-DD') <= f.END_DATE
+       	]]>
+    </if>
+	<choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by CREATE_DATE DESC
+		</otherwise>
+	</choose>
+  </select>
+  
+  <!-- 根据ID查询列表信息 -->
+  <select id="queryOtherCostManagerById" resultMap="OtherCostResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="OtherCost_Column_List" />
+    from (
+    	SELECT 
+	    t1.ID,
+	    t1.PROJECT_ID,
+	    t1.COST_SPORTS,
+	    t1.COST_EVENTS,
+	    t1.TOTAL_AMOUNT,
+	    t1.CURRENCY,
+	    t1.BEGIN_DATE,
+	    t1.END_DATE,
+	    t1.PEOPLE_CONCERNED,
+	    t1.WHETHER_INVOICE,
+	    t1.COST_DESCRIBE,
+	    t1.REMARK,
+	    t1.CREATE_BY,
+	    t1.CREATE_DATE,
+	    t1.UPDATE_BY,
+	    t1.UPDATE_DATE,
+		t2.project_no PROJECT_NO,
+		t2.project_name PROJECT_NAME,
+		t3.user_name PEOPLE_NAME,
+		t4.user_name CREATE_BY_NAME,
+		t4.dept_id CREATE_DEPT
+		from PMS_OTHER_COST t1
+		LEFT JOIN pms_project t2 ON t1.project_id=t2.id
+		LEFT JOIN pms_user t3 ON t1.people_concerned=t3.id
+		LEFT JOIN pms_user t4 ON t1.create_by =t4.id
+    )f
+    where f.ID =  #{id,jdbcType=DECIMAL }
+  </select>
+  
+  <!-- 新增信息 -->
+  <insert id="insertOtherCostManager" parameterType="com.ps.result.projectmanage.OtherCostManagerVo" >
+    insert into PMS_OTHER_COST
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+	    ID,
+	    PROJECT_ID,
+	    COST_SPORTS,
+	    COST_EVENTS,
+	    TOTAL_AMOUNT,
+	    CURRENCY,
+	    BEGIN_DATE,
+	    END_DATE,
+	    PEOPLE_CONCERNED,
+	    WHETHER_INVOICE,
+	    COST_DESCRIBE,
+	    REMARK,
+	    CREATE_BY,
+	    CREATE_DATE,
+	    UPDATE_BY,
+	    UPDATE_DATE,
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       pms_other_cost_tb_seq.nextval,
+       #{projectId,jdbcType=VARCHAR },
+       #{costSports,jdbcType=VARCHAR },
+       #{costEvents,jdbcType=VARCHAR },
+       #{totalAmount,jdbcType=VARCHAR },
+       #{currency,jdbcType=VARCHAR },
+       to_date(#{beginDate,jdbcType=VARCHAR },'yyyy-MM-dd'),
+       to_date(#{endDate,jdbcType=VARCHAR },'yyyy-MM-dd'),
+       #{peopleConcerned,jdbcType=VARCHAR },
+       #{whetherInvoice,jdbcType=VARCHAR },
+       #{costDescribe,jdbcType=VARCHAR },
+       #{remark,jdbcType=VARCHAR },
+       #{createBy,jdbcType=VARCHAR },
+       sysdate,
+       #{updateBy,jdbcType=VARCHAR },
+       sysdate
+    </trim>
+  </insert>
+  
+  <!-- 修改信息 -->
+  <update id="updateOtherCostManager" parameterType="com.ps.result.projectmanage.OtherCostManagerVo" >
+    update PMS_OTHER_COST
+    SET
+   		PROJECT_ID =  #{projectId,jdbcType=VARCHAR },
+   		COST_SPORTS =  #{costSports,jdbcType=VARCHAR },
+   		COST_EVENTS =  #{costEvents,jdbcType=VARCHAR },
+   		TOTAL_AMOUNT =  #{totalAmount,jdbcType=VARCHAR },
+   		CURRENCY =  #{currency,jdbcType=VARCHAR },
+   		BEGIN_DATE =  to_date(#{beginDate,jdbcType=VARCHAR },'yyyy-MM-dd'),
+  		END_DATE =  to_date(#{endDate,jdbcType=VARCHAR },'yyyy-MM-dd'),
+   		PEOPLE_CONCERNED =  #{peopleConcerned,jdbcType=VARCHAR },
+   		WHETHER_INVOICE =  #{whetherInvoice,jdbcType=VARCHAR },
+   		COST_DESCRIBE =  #{costDescribe,jdbcType=VARCHAR },
+   		REMARK =  #{remark,jdbcType=VARCHAR },
+   		UPDATE_BY =  #{updateBy,jdbcType=VARCHAR },
+   		UPDATE_DATE =  sysdate
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 根据ID删除信息 -->
+  <delete id="deleteOtherCostManagerById" parameterType="java.lang.String" >
+    delete from PMS_OTHER_COST
+    where ID =  #{id,jdbcType=DECIMAL }
+  </delete>
+  
+  <!-- 根据查询条件获取项目信息 -->
+  <select id="getProjectInfo" parameterType="com.ps.result.projectmanage.OtherCostManagerVo" resultType="map">
+   	SELECT 
+    t1.PROJECT_ID,
+	t2.project_no PROJECT_NO,
+	t2.project_name PROJECT_NAME
+	from PMS_OTHER_COST t1
+	LEFT JOIN pms_project t2 ON t1.project_id=t2.id
+	LEFT JOIN pms_user t3 ON t1.people_concerned=t3.id
+	LEFT JOIN pms_user t4 ON t1.create_by =t4.id
+    where 1=1
+    <if test="projectNo != null and projectNo != ''">
+	  AND t2.project_no LIKE '%'||#{projectNo}||'%'
+    </if>
+    <if test="projectName != null and projectName != ''">
+	  AND t2.project_name LIKE '%'||#{projectName}||'%'
+    </if>
+    <if test="costSports != null and costSports != '' and costSports!='null'">
+	  AND t1.COST_SPORTS IN (${costSports})
+    </if>
+    <if test="costEvents != null and costEvents != '' and costEvents!='null'">
+	  AND t1.COST_EVENTS IN (${costEvents})
+    </if>
+    <if test="peopleName != null and peopleName != ''">
+	  AND t3.user_name LIKE '%'||#{peopleName}||'%'
+    </if>
+    <if test="startTime != null and startTime != '' and endTime != null and endTime != '' ">
+    	<![CDATA[
+	  		AND ((to_date(#{startTime,jdbcType=VARCHAR },'YYYY-MM-DD') >= t1.BEGIN_DATE 
+	  		AND to_date(#{startTime,jdbcType=VARCHAR },'YYYY-MM-DD') <= t1.END_DATE)
+	  		OR (to_date(#{endTime,jdbcType=VARCHAR },'YYYY-MM-DD') >= t1.BEGIN_DATE 
+	  		AND to_date(#{endTime,jdbcType=VARCHAR },'YYYY-MM-DD') <= t1.END_DATE))
+		]]>
+    </if>
+    <if test="startTime != null and startTime != '' and (endTime == null or endTime == '')">
+    	<![CDATA[
+    		AND to_date(#{startTime,jdbcType=VARCHAR },'YYYY-MM-DD') >= t1.BEGIN_DATE 
+	  		AND to_date(#{startTime,jdbcType=VARCHAR },'YYYY-MM-DD') <= t1.END_DATE
+    	]]>
+    </if>
+    <if test="endTime != null and endTime != '' and (startTime == null or startTime == '')">
+       	<![CDATA[
+       		AND to_date(#{endTime,jdbcType=VARCHAR },'YYYY-MM-DD') >= t1.BEGIN_DATE 
+	  		AND to_date(#{endTime,jdbcType=VARCHAR },'YYYY-MM-DD') <= t1.END_DATE
+       	]]>
+    </if>
+    GROUP BY t1.PROJECT_ID,t2.project_no,t2.project_name
+  </select>
+  
+  <!-- 根据项目id及查询条件获取其他成本信息 -->
+  <select id="getOtherCostInfo" parameterType="com.ps.result.projectmanage.OtherCostManagerVo" resultType="map">
+  	 SELECT 
+	    t1.PROJECT_ID,
+			t5.code_zh COST_SPORTS_NAME,
+			(CASE WHEN t1.COST_EVENTS=0 THEN (
+			   SELECT f1.code_zh FROM PMS_CODE F1 WHERE f1.code_value=t1.cost_events 
+					 AND f1.code_type='costEventsTravel'	
+			) WHEN t1.cost_events=1 THEN (
+			   SELECT f1.code_zh FROM PMS_CODE F1 WHERE f1.code_value=t1.cost_events 
+					 AND f1.code_type='costEventsOther'
+			) END ) COST_EVENTS_NAME,
+	    t1.TOTAL_AMOUNT,
+			t6.code_zh CURRENCY,
+	    to_char(t1.BEGIN_DATE,'YYYY-MM-DD') BEGIN_DATE,
+	    to_char(t1.END_DATE,'YYYY-MM-DD') END_DATE,
+			t3.user_name PEOPLE_NAME,
+	    t1.COST_DESCRIBE,
+	    t1.REMARK
+    from PMS_OTHER_COST t1
+    LEFT JOIN pms_project t2 ON t1.project_id=t2.id
+    LEFT JOIN pms_user t3 ON t1.people_concerned=t3.id
+    LEFT JOIN pms_user t4 ON t1.create_by =t4.id
+		LEFT JOIN pms_code t5 ON t1.cost_sports=t5.code_value AND t5.code_type='costSports'
+		LEFT JOIN pms_code t6 ON t1.currency = t6.code_value AND t6.code_type='currency'
+	where 1=1
+    <if test="projectNo != null and projectNo != ''">
+	  AND t2.project_no LIKE '%'||#{projectNo}||'%'
+    </if>
+    <if test="projectName != null and projectName != ''">
+	  AND t2.project_name LIKE '%'||#{projectName}||'%'
+    </if>
+    <if test="costSports != null and costSports != '' and costSports!='null'">
+	  AND t1.COST_SPORTS IN (${costSports})
+    </if>
+    <if test="costEvents != null and costEvents != '' and costEvents!='null'">
+	  AND t1.COST_EVENTS IN (${costEvents})
+    </if>
+    <if test="peopleName != null and peopleName != ''">
+	  AND t3.user_name LIKE '%'||#{peopleName}||'%'
+    </if>
+    <if test="projectId != null and projectId != ''">
+      AND　t1.PROJECT_ID = #{projectId,jdbcType=VARCHAR }
+    </if>
+    <if test="startTime != null and startTime != '' and endTime != null and endTime != '' ">
+    	<![CDATA[
+	  		AND ((to_date(#{startTime,jdbcType=VARCHAR },'YYYY-MM-DD') >= t1.BEGIN_DATE 
+	  		AND to_date(#{startTime,jdbcType=VARCHAR },'YYYY-MM-DD') <= t1.END_DATE)
+	  		OR (to_date(#{endTime,jdbcType=VARCHAR },'YYYY-MM-DD') >= t1.BEGIN_DATE 
+	  		AND to_date(#{endTime,jdbcType=VARCHAR },'YYYY-MM-DD') <= t1.END_DATE))
+		]]>
+    </if>
+    <if test="startTime != null and startTime != '' and (endTime == null or endTime == '')">
+    	<![CDATA[
+    		AND to_date(#{startTime,jdbcType=VARCHAR },'YYYY-MM-DD') >= t1.BEGIN_DATE 
+	  		AND to_date(#{startTime,jdbcType=VARCHAR },'YYYY-MM-DD') <= t1.END_DATE
+    	]]>
+    </if>
+    <if test="endTime != null and endTime != '' and (startTime == null or startTime == '')">
+       	<![CDATA[
+       		AND to_date(#{endTime,jdbcType=VARCHAR },'YYYY-MM-DD') >= t1.BEGIN_DATE 
+	  		AND to_date(#{endTime,jdbcType=VARCHAR },'YYYY-MM-DD') <= t1.END_DATE
+       	]]>
+    </if>
+  </select>
+</mapper>
