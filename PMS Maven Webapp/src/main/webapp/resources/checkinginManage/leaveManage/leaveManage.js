@@ -1,6 +1,6 @@
 /*
  *  @Description：主页面Js
- *  @author：	raomingyi
+ *  @author：	Jasonzhang
  *  @date：	2018-03-05
  */
 var ContractManage = {
