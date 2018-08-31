@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<!-- 工时统计Vo类 -->
+<mapper namespace="com.ps.dao.projectmanage.WorkHoursManagerDao" >
+  <resultMap id="WorkHoursResultMap" type="com.ps.result.projectmanage.WorkHoursVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="PROJECT_ID" property="projectId" jdbcType="VARCHAR" />
+    <result column="PROJECT_NAME" property="projectName" jdbcType="VARCHAR" />
+    <result column="WORKING_TYPE" property="workingType" jdbcType="VARCHAR" />
+    <result column="WORKING_HOURS" property="workingHours" jdbcType="VARCHAR" />
+    <result column="INVOLVING_RESOURCE" property="involvingResource" jdbcType="VARCHAR" />
+    <result column="BEGIN_DATE" property="beginDate" jdbcType="VARCHAR" />
+    <result column="END_DATE" property="endDate" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="UPDATE_BY" property="updateBy" jdbcType="VARCHAR" />
+    <result column="UPDATE_DATE" property="updateDate" jdbcType="VARCHAR" />
+    <result column="PROJECT_NO" property="projectNo" jdbcType="VARCHAR" />
+    <result column="CREATE_BY_NAME" property="createByName" jdbcType="VARCHAR" />
+  </resultMap>
+  <!--查询字段 所有的表字段-->
+  <sql id="WorkHours_Column_List" >
+    ID,
+    PROJECT_ID,
+    PROJECT_NAME,
+    WORKING_TYPE,
+    WORKING_HOURS,
+    INVOLVING_RESOURCE,
+    to_char(BEGIN_DATE,'YYYY-MM-DD') BEGIN_DATE,
+    to_char(END_DATE,'YYYY-MM-DD') END_DATE,
+    CREATE_BY,
+    to_char(CREATE_DATE,'YYYY-MM-DD') CREATE_DATE,
+    UPDATE_BY,
+    to_char(UPDATE_DATE,'YYYY-MM-DD') UPDATE_DATE,
+    CREATE_BY_NAME,
+    PROJECT_NO
+  </sql>
+  
+  <!-- 根据参数查询列表信息 -->
+  <select id="queryWorkHoursInfoByParam" resultMap="WorkHoursResultMap" parameterType="com.ps.result.projectmanage.WorkHoursVo" >
+    select
+    <include refid="WorkHours_Column_List" />
+    from (
+    	SELECT t1.ID,
+	    t1.PROJECT_ID,
+	    t1.WORKING_TYPE,
+	    t1.WORKING_HOURS,
+	    t1.INVOLVING_RESOURCE,
+	    t1.BEGIN_DATE,
+	    t1.END_DATE,
+	    t1.CREATE_BY,
+	    t1.CREATE_DATE,
+	    t1.UPDATE_BY,
+	    t1.UPDATE_DATE,
+		t2.project_name PROJECT_NAME,
+		t3.user_name CREATE_BY_NAME,
+		t2.project_no PROJECT_NO
+		FROM pms_working_hours t1
+		LEFT JOIN pms_project t2 ON t1.project_id=t2.id
+		LEFT JOIN pms_user t3 ON t1.create_by=t3.id
+    )f
+    where 1=1
+    <if test="projectNo != null and projectNo != ''">
+	  AND f.PROJECT_NO LIKE '%'||#{projectNo}||'%'
+    </if>
+    <if test="projectName != null and projectName != ''">
+	  AND f.PROJECT_NAME LIKE '%'||#{projectName}||'%'
+    </if>
+    <if test="workingType != null and workingType != '' and workingType!='null'">
+	  AND f.WORKING_TYPE IN (${workingType})
+    </if>
+    <if test="startTime != null and startTime != '' and endTime != null and endTime != '' ">
+    	<![CDATA[
+	  		AND ((to_date(#{startTime,jdbcType=VARCHAR },'YYYY-MM-DD') >= f.BEGIN_DATE 
+	  		AND to_date(#{startTime,jdbcType=VARCHAR },'YYYY-MM-DD') <= f.END_DATE)
+	  		OR (to_date(#{endTime,jdbcType=VARCHAR },'YYYY-MM-DD') >= f.BEGIN_DATE 
+	  		AND to_date(#{endTime,jdbcType=VARCHAR },'YYYY-MM-DD') <= f.END_DATE))
+		]]>
+    </if>
+    <if test="startTime != null and startTime != '' and (endTime == null or endTime == '')">
+    	<![CDATA[
+    		AND to_date(#{startTime,jdbcType=VARCHAR },'YYYY-MM-DD') >= f.BEGIN_DATE 
+	  		AND to_date(#{startTime,jdbcType=VARCHAR },'YYYY-MM-DD') <= f.END_DATE
+    	]]>
+    </if>
+    <if test="endTime != null and endTime != '' and (startTime == null or startTime == '')">
+       	<![CDATA[
+       		AND to_date(#{endTime,jdbcType=VARCHAR },'YYYY-MM-DD') >= f.BEGIN_DATE 
+	  		AND to_date(#{endTime,jdbcType=VARCHAR },'YYYY-MM-DD') <= f.END_DATE
+       	]]>
+    </if>
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by f.CREATE_DATE DESC
+		</otherwise>
+	</choose>
+  </select>
+  
+  <!-- 根据ID查询列表信息 -->
+  <select id="queryWorkHoursById" resultMap="WorkHoursResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="WorkHours_Column_List" />
+    from (
+    	SELECT t1.ID,
+	    t1.PROJECT_ID,
+	    t1.WORKING_TYPE,
+	    t1.WORKING_HOURS,
+	    t1.INVOLVING_RESOURCE,
+	    t1.BEGIN_DATE,
+	    t1.END_DATE,
+	    t1.CREATE_BY,
+	    t1.CREATE_DATE,
+	    t1.UPDATE_BY,
+	    t1.UPDATE_DATE,
+		t2.project_name PROJECT_NAME,
+		t3.user_name CREATE_BY_NAME,
+		t2.project_no PROJECT_NO
+		FROM pms_working_hours t1
+		LEFT JOIN pms_project t2 ON t1.project_id=t2.id
+		LEFT JOIN pms_user t3 ON t1.create_by=t3.id
+    )f
+    where f.ID =  #{id,jdbcType=DECIMAL }
+  </select>
+  
+  <!-- 新增信息 -->
+  <insert id="insertWorkHours" parameterType="com.ps.result.projectmanage.WorkHoursVo" >
+    insert into PMS_WORKING_HOURS
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+	    ID,
+	    PROJECT_ID,
+	    WORKING_TYPE,
+	    WORKING_HOURS,
+	    INVOLVING_RESOURCE,
+	    BEGIN_DATE,
+	    END_DATE,
+	    CREATE_BY,
+	    CREATE_DATE,
+	    UPDATE_BY,
+	    UPDATE_DATE
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       pms_working_hours_tb_seq.nextval,
+       #{projectId,jdbcType=VARCHAR },
+       #{workingType,jdbcType=VARCHAR },
+       #{workingHours,jdbcType=VARCHAR },
+       #{involvingResource,jdbcType=VARCHAR },
+       to_date(#{beginDate,jdbcType=VARCHAR },'yyyy-MM-dd'),
+       to_date(#{endDate,jdbcType=VARCHAR },'yyyy-MM-dd'),
+       #{createBy,jdbcType=VARCHAR },
+       sysdate,
+       #{updateBy,jdbcType=VARCHAR },
+       sysdate
+    </trim>
+  </insert>
+  
+  <!-- 修改信息 -->
+  <update id="updateWorkHours" parameterType="com.ps.result.projectmanage.WorkHoursVo" >
+    update PMS_WORKING_HOURS
+    set
+   		PROJECT_ID =  #{projectId,jdbcType=VARCHAR },
+   		WORKING_TYPE =  #{workingType,jdbcType=VARCHAR },
+   		WORKING_HOURS =  #{workingHours,jdbcType=VARCHAR },
+   		INVOLVING_RESOURCE =  #{involvingResource,jdbcType=VARCHAR },
+   		BEGIN_DATE =  to_date(#{beginDate,jdbcType=VARCHAR },'yyyy-MM-dd'),
+   		END_DATE =  to_date(#{endDate,jdbcType=VARCHAR },'yyyy-MM-dd'),
+   		UPDATE_BY =  #{updateBy,jdbcType=VARCHAR },
+   		UPDATE_DATE =  sysdate
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 根据ID删除信息 -->
+  <delete id="deleteWorkHoursById" parameterType="java.lang.String" >
+    delete from PMS_WORKING_HOURS
+    where ID =  #{id,jdbcType=DECIMAL }
+  </delete>
+  
+  
+  <!-- 根据查询条件查询项目信息 -->
+  <select id="getProjectInfo" resultType="map" parameterType="com.ps.result.projectmanage.WorkHoursVo" >
+  	SELECT 
+  		T1.PROJECT_ID,
+       	T2.PROJECT_NAME PROJECT_NAME,
+       	T2.PROJECT_NO   PROJECT_NO
+	 FROM PMS_WORKING_HOURS T1
+	 LEFT JOIN PMS_PROJECT T2
+	    ON T1.PROJECT_ID = T2.ID
+	 LEFT JOIN PMS_USER T3
+	    ON T1.CREATE_BY = T3.ID
+	 where 1=1
+    <if test="projectNo != null and projectNo != ''">
+	  AND T2.PROJECT_NO LIKE '%'||#{projectNo}||'%'
+    </if>
+    <if test="projectName != null and projectName != ''">
+	  AND T2.PROJECT_NAME LIKE '%'||#{projectName}||'%'
+    </if>
+    <if test="workingType != null and workingType != '' and workingType!='null'">
+	  AND T1.WORKING_TYPE IN (${workingType})
+    </if>
+    <if test="startTime != null and startTime != '' and endTime != null and endTime != '' ">
+    	<![CDATA[
+	  		AND ((to_date(#{startTime,jdbcType=VARCHAR },'YYYY-MM-DD') >= T1..BEGIN_DATE 
+	  		AND to_date(#{startTime,jdbcType=VARCHAR },'YYYY-MM-DD') <= T1..END_DATE)
+	  		OR (to_date(#{endTime,jdbcType=VARCHAR },'YYYY-MM-DD') >= T1..BEGIN_DATE 
+	  		AND to_date(#{endTime,jdbcType=VARCHAR },'YYYY-MM-DD') <= T1..END_DATE))
+		]]>
+    </if>
+    <if test="startTime != null and startTime != '' and (endTime == null or endTime == '')">
+    	<![CDATA[
+    		AND to_date(#{startTime,jdbcType=VARCHAR },'YYYY-MM-DD') >= T1..BEGIN_DATE 
+	  		AND to_date(#{startTime,jdbcType=VARCHAR },'YYYY-MM-DD') <= T1..END_DATE
+    	]]>
+    </if>
+    <if test="endTime != null and endTime != '' and (startTime == null or startTime == '')">
+       	<![CDATA[
+       		AND to_date(#{endTime,jdbcType=VARCHAR },'YYYY-MM-DD') >= T1..BEGIN_DATE 
+	  		AND to_date(#{endTime,jdbcType=VARCHAR },'YYYY-MM-DD') <= T1..END_DATE
+       	]]>
+    </if>
+    group by T1.PROJECT_ID,T2.PROJECT_NAME,T2.PROJECT_NO
+  </select>
+  
+  <!-- 根据参数导出工时统计列表信息 -->
+  <select id="getWorkHoursInfo" resultType="map" parameterType="com.ps.result.projectmanage.WorkHoursVo" >
+    SELECT T1.PROJECT_ID,
+       T4.CODE_ZH WORKING_TYPE,
+       T1.WORKING_HOURS,
+       T1.INVOLVING_RESOURCE,
+       TO_CHAR(T1.BEGIN_DATE, 'YYYY-MM-DD') BEGIN_DATE,
+       TO_CHAR(T1.END_DATE, 'YYYY-MM-DD') END_DATE
+   	FROM PMS_WORKING_HOURS T1
+   	LEFT JOIN PMS_PROJECT T2
+    	ON T1.PROJECT_ID = T2.ID
+   	LEFT JOIN PMS_USER T3
+    	ON T1.CREATE_BY = T3.ID
+   	LEFT JOIN PMS_CODE T4
+    	ON T4.CODE_VALUE = T1.WORKING_TYPE
+   		AND T4.CODE_TYPE = 'workHoursType'
+   	where 1=1
+   	<if test="projectId != null and projectId != ''">
+      AND　t1.PROJECT_ID = #{projectId,jdbcType=VARCHAR }
+    </if>
+   	<if test="projectNo != null and projectNo != ''">
+	  AND T2.PROJECT_NO LIKE '%'||#{projectNo}||'%'
+    </if>
+    <if test="projectName != null and projectName != ''">
+	  AND T2.PROJECT_NAME LIKE '%'||#{projectName}||'%'
+    </if>
+    <if test="workingType != null and workingType != '' and workingType!='null'">
+	  AND T1.WORKING_TYPE IN (${workingType})
+    </if>
+    <if test="startTime != null and startTime != '' and endTime != null and endTime != '' ">
+    	<![CDATA[
+	  		AND ((to_date(#{startTime,jdbcType=VARCHAR },'YYYY-MM-DD') >= T1..BEGIN_DATE 
+	  		AND to_date(#{startTime,jdbcType=VARCHAR },'YYYY-MM-DD') <= T1..END_DATE)
+	  		OR (to_date(#{endTime,jdbcType=VARCHAR },'YYYY-MM-DD') >= T1..BEGIN_DATE 
+	  		AND to_date(#{endTime,jdbcType=VARCHAR },'YYYY-MM-DD') <= T1..END_DATE))
+		]]>
+    </if>
+    <if test="startTime != null and startTime != '' and (endTime == null or endTime == '')">
+    	<![CDATA[
+    		AND to_date(#{startTime,jdbcType=VARCHAR },'YYYY-MM-DD') >= T1..BEGIN_DATE 
+	  		AND to_date(#{startTime,jdbcType=VARCHAR },'YYYY-MM-DD') <= T1..END_DATE
+    	]]>
+    </if>
+    <if test="endTime != null and endTime != '' and (startTime == null or startTime == '')">
+       	<![CDATA[
+       		AND to_date(#{endTime,jdbcType=VARCHAR },'YYYY-MM-DD') >= T1..BEGIN_DATE 
+	  		AND to_date(#{endTime,jdbcType=VARCHAR },'YYYY-MM-DD') <= T1..END_DATE
+       	]]>
+    </if>
+  </select>
+</mapper>

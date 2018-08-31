@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.performancemanager.PerformanceManagerDao" >
+  <!-- 绩效档案映射实体类 -->
+  <resultMap id="PerformanceResultMap" type="com.ps.result.performancemanage.PerformanceVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="UPDATE_BY" property="updateBy" jdbcType="VARCHAR" />
+    <result column="UPDATE_DATE" property="updateDate" jdbcType="VARCHAR" />
+    <result column="USER_ID" property="userId" jdbcType="VARCHAR" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="GRADE" property="grade" jdbcType="VARCHAR" />
+    <result column="KPI_KIND" property="kpiKind" jdbcType="VARCHAR" />
+    <result column="KPI_NUMBERS" property="kpiNumbers" jdbcType="VARCHAR" />
+    <result column="COMMENTS" property="comments" jdbcType="VARCHAR" />
+    <result column="REMARKS" property="remarks" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="MONTH" property="month" jdbcType="VARCHAR" />
+  </resultMap>
+  <!--查询字段 所有的表字段-->
+  <sql id="Performance_Column_List" >
+    UPDATE_BY,
+    UPDATE_DATE,
+    USER_ID,
+    ID,
+    GRADE,
+    KPI_KIND,
+    KPI_NUMBERS,
+    COMMENTS,
+    REMARKS,
+    CREATE_BY,
+    CREATE_DATE,
+    MONTH
+  </sql>
+  
+  <!-- 根据参数查询绩效档案列表信息 -->
+  <select id="queryPerformanceInfoByParam" resultMap="PerformanceResultMap" 
+  	parameterType="com.ps.result.performancemanage.PerformanceVo" >
+    select
+    <include refid="Performance_Column_List" />
+    from PMS_PERFORMANCE
+    where 1=1
+    <if test="userId != null and userId != ''">
+    	and USER_ID=#{userId,jdbcType=VARCHAR }
+    </if>
+    <if test="month != null and month != ''">
+    	and MONTH=#{month,jdbcType=VARCHAR }
+    </if>
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by CREATE_DATE
+		</otherwise>
+	</choose>
+  </select>
+  
+  <!-- 根据ID查询绩效档案列表信息 -->
+  <select id="queryPerformanceById" resultMap="PerformanceResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Performance_Column_List" />
+    from PMS_PERFORMANCE
+    where ID =  #{id,jdbcType=DECIMAL }
+  </select>
+  
+  <!-- 新增绩效档案信息 -->
+  <insert id="insertPerformance" parameterType="com.ps.result.performancemanage.PerformanceVo" >
+    insert into PMS_PERFORMANCE
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+	    UPDATE_BY,
+	    UPDATE_DATE,
+	    USER_ID,
+	    ID,
+	    GRADE,
+	    KPI_KIND,
+	    KPI_NUMBERS,
+	    COMMENTS,
+	    REMARKS,
+	    CREATE_BY,
+	    CREATE_DATE,
+	    MONTH,
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       #{updateBy,jdbcType=VARCHAR },
+       sysdate,
+       #{userId,jdbcType=VARCHAR },
+       pms_performance_seq.nextval,
+       #{grade,jdbcType=VARCHAR },
+       #{kpiKind,jdbcType=VARCHAR },
+       #{kpiNumbers,jdbcType=VARCHAR },
+       #{comments,jdbcType=VARCHAR },
+       #{remarks,jdbcType=VARCHAR },
+       #{createBy,jdbcType=VARCHAR },
+       sysdate,
+       #{month,jdbcType=VARCHAR }
+    </trim>
+  </insert>
+  
+  <!-- 修改绩效档案信息 -->
+  <update id="updatePerformance" parameterType="com.ps.result.performancemanage.PerformanceVo" >
+    update PMS_PERFORMANCE
+    set
+   		GRADE =  #{grade,jdbcType=VARCHAR },
+   		KPI_KIND =  #{kpiKind,jdbcType=VARCHAR },
+   		KPI_NUMBERS =  #{kpiNumbers,jdbcType=VARCHAR },
+   		COMMENTS =  #{comments,jdbcType=VARCHAR },
+   		REMARKS =  #{remarks,jdbcType=VARCHAR },
+   		MONTH =  #{month,jdbcType=VARCHAR },
+	    UPDATE_BY =  #{updateBy,jdbcType=VARCHAR },
+   		UPDATE_DATE = sysdate
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  
+</mapper>

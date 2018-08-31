@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+	xmlns:beans="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+                        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+                        http://www.springframework.org/schema/security
+                        http://www.springframework.org/schema/security/spring-security.xsd
+                        http://www.springframework.org/schema/util
+                        http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+	<!-- 不要过滤css、js和图片等静态资源 -->
+	<http pattern="/assets/**" security="none" />
+	<http pattern="/resources/**" security="none" />
+	<http pattern="/login.jsp" security="none" />
+    <http pattern="/verifyCode.jsp" security="none"/>
+    
+	<!-- 页面标签权限功能依赖 -->
+	<beans:bean id="webInvocationFilter" 
+	    class="org.springframework.security.web.access.DefaultWebInvocationPrivilegeEvaluator">
+	    <beans:constructor-arg name="securityInterceptor" ref="filterSecurityInterceptor" />
+	</beans:bean>
+	
+	<beans:bean id="accessDeniedHandler" class="com.authority.CustomAccessDeniedHandler" />
+	
+	<http  entry-point-ref="authenticationProcessingFilterEntryPoint" use-expressions="true" >
+		<access-denied-handler ref="accessDeniedHandler"/>
+		<!-- 防止匿名登录 -->
+		<intercept-url pattern="/**" access="isAuthenticated()"/>
+		<!-- 自定义登录页面 -->
+		<!-- <form-login login-page="/login.jsp" authentication-failure-url="/login.jsp?error=true" 
+			default-target-url="/admin.jsp" always-use-default-target="true" /> -->
+		<!-- 登出跳转页面 -->
+		<logout delete-cookies="JSESSIONID"/>
+		<!-- 定制"记住我"功能 -->
+		<remember-me services-ref="rememberMeServices" />
+		<!-- 检测失效的sessionId,超时时定位到另外一个URL -->
+		<session-management session-authentication-strategy-ref="sessionAuthenticationStrategy" invalid-session-url="/login.jsp" />
+		<custom-filter position="CONCURRENT_SESSION_FILTER" ref="concurrentSessionFilter"></custom-filter>
+		<!-- 表单登陆验证，替换原来的Filter -->
+		<custom-filter ref="formLoginFilter" position="FORM_LOGIN_FILTER" />
+		<!-- 增加一个自定义filter，放在FILTER_SECURITY_INTERCEPTOR之前， 实现用户、角色、权限和资源的数据库管理。 -->
+		<custom-filter ref="filterSecurityInterceptor" before="FILTER_SECURITY_INTERCEPTOR" />
+	</http>
+	
+	<!-- 表单登录验证器 -->
+	<beans:bean id="formLoginFilter" class="com.authority.CustomUsernamePasswordAuthenticationFilter">
+		<!-- 处理登录 -->
+		<beans:property name="filterProcessesUrl" value="/j_spring_security_check"></beans:property>
+		<beans:property name="authenticationSuccessHandler"
+			ref="simpleUrlAuthenticationSuccessHandler">
+		</beans:property>
+		<beans:property name="authenticationFailureHandler" ref="simpleUrlAuthenticationFailureHandler"></beans:property>
+		<beans:property name="authenticationManager" ref="authenticationManager"></beans:property>
+		<beans:property name="rememberMeServices" ref="rememberMeServices"></beans:property>
+		<beans:property name="sessionAuthenticationStrategy" ref="sessionAuthenticationStrategy"></beans:property>
+	</beans:bean>
+	
+	<!-- 登录成功页面 -->
+	<beans:bean id="simpleUrlAuthenticationSuccessHandler"
+		class="org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler">
+		<beans:property name="defaultTargetUrl" value="/common/welcome"></beans:property>
+		<beans:property name="alwaysUseDefaultTargetUrl" value="true"></beans:property>
+	</beans:bean>
+	
+	<!-- 登录失败页面 -->
+	<beans:bean id="simpleUrlAuthenticationFailureHandler"
+		class="org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler">
+		<beans:property name="defaultFailureUrl" value="/login.jsp"></beans:property>
+	</beans:bean>
+	
+	<!-- 记住我 -->
+	<beans:bean id="rememberMeServices"
+		class="org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices">
+		<beans:property name="userDetailsService" ref="userDetailsService" />
+		<beans:property name="key" value="springsecurityCookies1" />
+		<beans:property name="alwaysRemember" value="false"></beans:property>
+		<beans:property name="tokenValiditySeconds" value="1209600"></beans:property>
+		<beans:property name="parameter" value="_spring_security_remember_me"></beans:property>
+	</beans:bean>
+	
+	<beans:bean id="rememberMeAuthenticationProvider"
+		class="org.springframework.security.authentication.RememberMeAuthenticationProvider">
+		<beans:property name="key" value="springsecurityCookies1" />
+	</beans:bean>
+	
+	<!-- 一个自定义filterSecurityInterceptor，必须包含authenticationManager, accessDecisionManager,securityMetadataSource三个属性。 -->
+	<beans:bean id="filterSecurityInterceptor"
+		class="com.authority.CustomFilterSecurityInterceptor">
+		<beans:property name="authenticationManager" ref="authenticationManager" />
+		<beans:property name="accessDecisionManager" ref="customAccessDecisionManager" />
+		<beans:property name="securityMetadataSource" ref="customSecurityMetadataSource" />
+	</beans:bean>
+	
+	<!-- 认证管理器，实现用户认证入口 ，可 设置alias别名 -->
+	<authentication-manager alias="authenticationManager" erase-credentials="false">
+		<authentication-provider user-service-ref="userDetailsService">
+			<!-- 密码明文{盐值} -->
+			<!-- <password-encoder ref="passwordEncoder"> <salt-source user-property="username" /> </password-encoder> -->
+		</authentication-provider>
+		<authentication-provider ref="rememberMeAuthenticationProvider"/>
+	</authentication-manager>
+	
+	<!-- 用户详细信息管理 -->
+	<beans:bean id="userDetailsService" class="com.authority.CustomUserDetailsService" />
+	
+	<!-- 将所有资源和权限的映射存入map，即定义某一资源可以被哪些角色去访问。 -->
+	<beans:bean id="customSecurityMetadataSource"
+		class="com.authority.CustomInvocationSecurityMetadataSourceService">
+		<beans:constructor-arg name="resourceDao" ref="resourceDao"></beans:constructor-arg> 
+	</beans:bean>
+	
+	<!-- 访问决策器，决定某个用户具有哪种角色，是否有权限访问某个资源。 -->
+	<beans:bean id="customAccessDecisionManager" class="com.authority.CustomAccessDecisionManager" />
+	
+	<!-- 事件监听:实现了 ApplicationListener监听接口, 包括AuthenticationCredentialsNotFoundEvent 
+		事件， AuthorizationFailureEvent事件，AuthorizedEvent事件， PublicInvocationEvent事 件。 -->
+	<beans:bean class="org.springframework.security.authentication.event.LoggerListener" />
+	
+	<!-- 未登录的切入点 -->
+	<beans:bean id="authenticationProcessingFilterEntryPoint"
+		class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint">
+		<beans:property name="loginFormUrl" value="/login.jsp"></beans:property>
+	</beans:bean>
+	
+	<!-- 控制用户Session -->
+	<beans:bean id="concurrentSessionFilter" class="org.springframework.security.web.session.ConcurrentSessionFilter">
+		<beans:property name="sessionRegistry" ref="sessionRegistry"></beans:property>
+		<beans:property name="expiredUrl" value="/login.jsp"></beans:property>
+	</beans:bean>
+	<beans:bean id="sessionAuthenticationStrategy" 
+		class="org.springframework.security.web.authentication.session.ConcurrentSessionControlStrategy">
+		<beans:constructor-arg name="sessionRegistry" ref="sessionRegistry"></beans:constructor-arg>
+		<!-- <beans:property name="maximumSessions" value="1"></beans:property> -->
+	</beans:bean>
+	<beans:bean id="sessionRegistry" class="org.springframework.security.core.session.SessionRegistryImpl" />
+</beans:beans>

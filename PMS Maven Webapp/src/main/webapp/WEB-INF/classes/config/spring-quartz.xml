@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+						http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+     <!-- 定时器 -->
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+	    <property name="triggers">
+	         <list>
+	         		<!-- 月报发送任务 -->
+	               <ref bean="monthReportTriggerSeasonMessage"></ref>
+	         </list>
+	    </property>
+	    <property name="autoStartup" value="true"/>
+	</bean>
+	
+	<!-- 每月25号凌晨1点执行 -->
+	<bean id="monthReportTriggerSeasonMessage" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="monthReportSeasonMessage"></property>
+ 	    <property name="cronExpression" value="0 0 1 25 * ?"/> 
+ 	    <!-- <property name="cronExpression" value="0 0/2 * * * ?"/> -->  
+	</bean>
+	<!-- 发送日报任务 -->
+	<bean id="monthReportSeasonMessage" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+	 	<property name="targetObject" ref="monthReportMessageQuartz"/>  <!--注入业务类 -->
+	    <property name="targetMethod" value="insertTask"/>  <!--注入业务类方法名 -->
+	    <property name="concurrent" value="true"/>  <!--并发执行 -->
+	</bean>
+	<!-- 执行定时任务工具类 -->
+	<bean id="monthReportMessageQuartz" class="com.ps.service.impl.performancemanage.MonthReportMessageQuartz"></bean>
+ </beans>

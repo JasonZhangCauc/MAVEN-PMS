@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.performancemanager.PerformanceContractManagerDao">
+	<resultMap id="PreformanceContractMap"
+		type="com.ps.result.performancemanage.PerformanceContractVo">
+		<id column="ID" property="id" jdbcType="DECIMAL" />
+		<result column="ID" property="id" jdbcType="VARCHAR" />
+		<result column="PC_TARGETTYPE" property="pcTargettype"
+			jdbcType="VARCHAR" />
+		<result column="PC_TARGETCONTENT" property="pcTargetcontent"
+			jdbcType="VARCHAR" />
+		<result column="PC_CHECKCONTENT" property="pcCheckcontent"
+			jdbcType="VARCHAR" />
+		<result column="PC_WEIGHT" property="pcWeight" jdbcType="VARCHAR" />
+		<result column="PC_FREQUENCY" property="pcFrequency" jdbcType="VARCHAR" />
+		<result column="PC_T1" property="pcTone" jdbcType="VARCHAR" />
+		<result column="PC_T2" property="pcTwo" jdbcType="VARCHAR" />
+		<result column="PC_T3" property="pcThree" jdbcType="VARCHAR" />
+		<result column="PC_STATUS" property="pcStatus" jdbcType="VARCHAR" />
+		<result column="PC_BY" property="pcBy" jdbcType="VARCHAR" />
+		<result column="PC_NAME" property="pcName" jdbcType="VARCHAR" />
+		<result column="CREATE_DATE" property="pcCreateDate" jdbcType="VARCHAR" />
+		<result column="PC_LEVEL" property="pcLevel" jdbcType="VARCHAR" />
+		<result column="PC_GREADE" property="pcGreade" jdbcType="VARCHAR" />
+	</resultMap>
+
+
+	<!-- 根据参数查询列表信息 -->
+	<select id="getAllPerformanceContract" resultMap="PreformanceContractMap"
+		parameterType="com.ps.result.performancemanage.PerformanceContractVo">
+		SELECT * FROM(
+		SELECT t1.ID,
+		t1.PC_TARGETTYPE,
+		t1.PC_TARGETCONTENT,
+		t1.PC_CHECKCONTENT,
+		t1.PC_WEIGHT,
+		t1.PC_FREQUENCY,
+		t1.PC_T1,
+		t1.PC_T2,
+		t1.PC_T3,
+		t1.PC_STATUS,
+		t1.PC_BY,
+		t2.user_name PC_NAME,
+		to_char(t1.CREATE_DATE,'YYYY-MM-DD') CREATE_DATE
+		FROM PMS_PERFORMANCECONTRACT t1
+		left join pms_user t2 on t1.PC_BY =t2.id
+		)m
+		where 1=1
+		<if test="pcName !=null and pcName !=''">
+			and (m.PC_NAME like '%'|| #{pcName}||'%'
+				or m.PC_BY like '%'|| #{pcName}||'%')
+		</if>
+		<if test="pcTargettype !=null and pcTargettype !=''">
+			and m.PC_TARGETTYPE = #{pcTargettype,jdbcType=VARCHAR}
+		</if>
+		<if test="pcTargetcontent !=null and pcTargetcontent !=''">
+			and m.PC_TARGETCONTENT like '%'|| #{pcTargetcontent}||'%'
+		</if>
+		<if test="pcStatus !=null and pcStatus !=''">
+			and m.PC_STATUS = #{pcStatus,jdbcType=VARCHAR}
+		</if>
+		<!-- 无权限 -->
+		<if test="authority == 0">
+			and 1!=1
+		</if>
+		<!-- 查看个人 -->
+		<if test="authority == 1">
+			and m.PC_BY = #{authUserId,jdbcType=VARCHAR }
+		</if>
+		<!-- 查看全部 -->
+		<if test="authority == 2">
+			and (m.PC_STATUS !=0 or m.PC_BY=#{authUserId,jdbcType=VARCHAR })
+		</if>
+		<choose>
+			<when test="orderByClause != null and orderByClause != ''">
+				order by ${orderByClause}
+			</when>
+			<otherwise>
+				order by m.CREATE_DATE DESC
+			</otherwise>
+		</choose>
+	</select>
+
+	<!-- 根据ID查询列表信息 -->
+	<select id="getPerformanceContractById" resultMap="PreformanceContractMap"
+		parameterType="java.lang.String">
+		SELECT * FROM(
+		SELECT t1.ID,
+		t1.PC_TARGETTYPE,
+		t1.PC_TARGETCONTENT,
+		t1.PC_CHECKCONTENT,
+		t1.PC_WEIGHT,
+		t1.PC_FREQUENCY,
+		t1.PC_T1,
+		t1.PC_T2,
+		t1.PC_T3,
+		t1.PC_STATUS,
+		t1.PC_BY,
+		t1.PC_GREADE,
+		t1.PC_LEVEL,
+		t2.user_name PC_NAME,
+		to_char(t1.CREATE_DATE,'YYYY-MM-DD') CREATE_DATE
+		FROM PMS_PERFORMANCECONTRACT t1
+		left join pms_user t2 on t1.PC_BY =t2.id
+		)m
+		where 1=1
+		and m.ID = #{id,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 新增绩效合约信息 -->
+	<insert id="addPerformanceContract" parameterType="com.ps.result.performancemanage.PerformanceContractVo">
+		<selectKey resultType="java.lang.String" order="BEFORE"
+			keyProperty="id">
+			SELECT PMS_PERFORMANCECONTRACT_TB_SEQ.NEXTVAL as id FROM DUAL
+		</selectKey>
+		insert into PMS_PERFORMANCECONTRACT
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			ID,
+			PC_TARGETTYPE,
+			PC_TARGETCONTENT,
+			PC_CHECKCONTENT,
+			PC_WEIGHT,
+			PC_FREQUENCY,
+			PC_T1,
+			PC_T2,
+			PC_T3,
+			PC_STATUS,
+			PC_BY,
+			CREATE_DATE,
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			#{id,jdbcType=VARCHAR },
+			#{pcTargettype,jdbcType=VARCHAR },
+			#{pcTargetcontent,jdbcType=VARCHAR },
+			#{pcCheckcontent,jdbcType=VARCHAR },
+			#{pcWeight,jdbcType=VARCHAR },
+			#{pcFrequency,jdbcType=VARCHAR },
+			#{pcTone,jdbcType=VARCHAR },
+			#{pcTwo,jdbcType=VARCHAR },
+			#{pcThree,jdbcType=VARCHAR },
+			#{pcStatus,jdbcType=VARCHAR },
+		    #{pcBy,jdbcType=VARCHAR },
+			sysdate
+		</trim>
+	</insert>
+	
+	<!-- 更新绩效合约信息 -->
+	<update id="updatePerformanceContract" parameterType="com.ps.result.performancemanage.PerformanceContractVo">
+		update PMS_PERFORMANCECONTRACT
+		<set>
+			PC_TARGETTYPE = #{pcTargettype,jdbcType=VARCHAR },
+			PC_TARGETCONTENT = #{pcTargetcontent,jdbcType=VARCHAR },
+			PC_CHECKCONTENT = #{pcCheckcontent,jdbcType=VARCHAR },
+			PC_WEIGHT = #{pcWeight,jdbcType=VARCHAR },
+			PC_FREQUENCY = #{pcFrequency,jdbcType=VARCHAR },
+			PC_T1 = #{pcTone,jdbcType=VARCHAR },
+			PC_T2 = #{pcTwo,jdbcType=VARCHAR },
+			PC_T3 = #{pcThree,jdbcType=VARCHAR },
+		</set>
+		where ID = #{id,jdbcType=DECIMAL}
+	</update>
+	
+	<!-- 更新绩效合约状态信息 -->
+	<update id="updatePerformanceContractStatus" parameterType="com.ps.result.performancemanage.PerformanceContractVo">
+		update PMS_PERFORMANCECONTRACT
+		<set>
+			PC_STATUS = #{pcStatus,jdbcType=VARCHAR },
+		</set>
+		where ID = #{id,jdbcType=DECIMAL}
+	</update>
+	
+	
+	<!-- 删除绩效合约信息 -->
+	<delete id="deletePerformanceContract">
+		DELETE PMS_PERFORMANCECONTRACT WHERE ID=#{id,jdbcType=VARCHAR}
+	</delete>
+	
+	<!-- 审核绩效合约信息 -->
+	<update id="auditPerformanceContract" parameterType="com.ps.result.performancemanage.PerformanceContractVo">
+		update PMS_PERFORMANCECONTRACT
+		<set>
+			PC_WEIGHT = #{pcWeight,jdbcType=VARCHAR },
+			PC_STATUS = #{pcStatus,jdbcType=VARCHAR },
+			PC_LEVEL = #{pcLevel,jdbcType=VARCHAR },
+			PC_GREADE = #{pcGreade,jdbcType=VARCHAR },
+		</set>
+		where ID = #{id,jdbcType=DECIMAL}
+	</update>
+</mapper>

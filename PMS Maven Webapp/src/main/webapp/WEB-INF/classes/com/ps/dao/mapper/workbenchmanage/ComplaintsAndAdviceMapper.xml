@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.workbenchmanage.ComplaintsAndAdviceDao" >
+  <resultMap id="BaseResultMap" type="com.ps.result.workbenchmanager.ComplaintsAndAdviceVo" >
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="ADVICES_CONTENT" property="advicesContent" jdbcType="VARCHAR" />
+    <result column="ADVICES_TYPE" property="advicesType" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="UPDATE_DATE" property="updateDate" jdbcType="VARCHAR" />
+    <result column="UPDATE_BY" property="updateBy" jdbcType="VARCHAR" />
+    <result column="advicesTypeStr" property="advicesTypeStr" jdbcType="VARCHAR" />
+    <result column="createByStr" property="createByStr" jdbcType="VARCHAR" />
+    
+    
+  </resultMap>
+  <!--查询字段 所有的表字段-->
+  <sql id="Base_Column_List" >
+    ID,
+    ADVICES_CONTENT,
+    ADVICES_TYPE,
+    CREATE_DATE,
+    CREATE_BY,
+    UPDATE_DATE,
+    UPDATE_BY
+  </sql>
+  
+  <sql id="Base_Column_Page" >
+    t0.ID,
+    t0.ADVICES_CONTENT,
+    t0.ADVICES_TYPE,
+    to_char(t0.CREATE_DATE,'yyyy-mm-dd') CREATE_DATE,
+    t0.CREATE_BY,
+    t0.UPDATE_DATE,
+    t0.UPDATE_BY,
+    t1.CODE_ZH advicesTypeStr,
+    t2.user_name createByStr
+  </sql>
+  
+  
+  <!-- 根据参数查询列表信息 -->
+  <select id="queryComplaintsAndAdviceInfoByParam" resultMap="BaseResultMap" parameterType="com.ps.result.workbenchmanager.ComplaintsAndAdviceVo" >
+    select * from(
+	    select
+	    	t0.ID,
+		    t0.ADVICES_CONTENT,
+		    t0.ADVICES_TYPE,
+		    to_char(t0.CREATE_DATE,'yyyy-mm-dd') CREATE_DATE,
+		    t0.CREATE_DATE CREATE_DATES,
+		    t0.CREATE_BY,
+		    t0.UPDATE_DATE,
+		    t0.UPDATE_BY,
+		    t1.CODE_ZH advicesTypeStr,
+		    t2.user_name createByStr
+	    from PMS_COMPLAINTS_ADVICES t0 left join pms_code t1
+	    ON t0.ADVICES_TYPE = t1.CODE_VALUE
+	    AND t1.CODE_TYPE = 'adviceType' and t1.WHETHER_PARENT = '1' 
+	    left join pms_user t2 on t1.create_by = t2.id
+	    where 1 = 1 
+		<!--  无权限 -->
+		 <if test="authority == 0">
+	       and 1 != 1
+	     </if>
+		 <!-- 查看个人 -->
+	     <if test="authority == 1">
+	    	and t0.id = #{authUserId,jdbcType=VARCHAR }
+	     </if>
+	)m
+	where 1=1
+	<if test="advicesType !=null and advicesType !=''">
+		and m.ADVICES_TYPE = #{advicesType,jdbcType=VARCHAR}
+	</if>
+	<if test="createDateBegin != null and createDateBegin != ''">
+   		AND m.CREATE_DATES &gt;=to_date(#{createDateBegin,jdbcType=NVARCHAR},'YYYY-MM-DD')
+   </if>
+   <if test="createDateEnd != null and createDateEnd != ''">
+   		AND m.CREATE_DATES &lt;to_date(#{createDateEnd,jdbcType=NVARCHAR},'YYYY-MM-DD')
+   		
+   </if>
+	<choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by m.CREATE_DATE DESC
+		</otherwise>
+	 </choose>
+    
+    
+  </select>
+  
+  <!-- 根据ID查询列表信息 -->
+  <select id="queryComplaintsAndAdviceById" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from PMS_COMPLAINTS_ADVICES
+    where ID =  #{id,jdbcType=DECIMAL }
+  </select>
+  
+  <!-- 新增信息 -->
+  <insert id="insertComplaintsAndAdvice" parameterType="com.ps.result.workbenchmanager.ComplaintsAndAdviceVo" >
+    insert into PMS_COMPLAINTS_ADVICES
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+	    ID,
+	    ADVICES_CONTENT,
+	    ADVICES_TYPE,
+	    CREATE_DATE,
+	    CREATE_BY,
+	    UPDATE_DATE,
+	    UPDATE_BY,
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       PMS_COMPLAINTS_ADVICES_SEQ.Nextval,
+       #{vo.advicesContent,jdbcType=VARCHAR },
+       #{vo.advicesType,jdbcType=VARCHAR },
+       sysdate,
+       #{vo.createBy,jdbcType=VARCHAR },
+       #{vo.updateDate,jdbcType=VARCHAR },
+       #{vo.updateBy,jdbcType=VARCHAR },
+    </trim>
+  </insert>
+  
+  <!-- 修改信息 -->
+  <update id="updateComplaintsAndAdvice" parameterType="com.ps.result.workbenchmanager.ComplaintsAndAdviceVo" >
+    update PMS_COMPLAINTS_ADVICES
+    <set >
+		<if test="vo.id != null">
+    		ID =  #{vo.id,jdbcType=VARCHAR },
+		</if>
+		<if test="vo.advicesContent != null">
+    		ADVICES_CONTENT =  #{vo.advicesContent,jdbcType=VARCHAR },
+		</if>
+		<if test="vo.advicesType != null">
+    		ADVICES_TYPE =  #{vo.advicesType,jdbcType=VARCHAR },
+		</if>
+		<if test="vo.createDate != null">
+    		CREATE_DATE =  #{vo.createDate,jdbcType=VARCHAR },
+		</if>
+		<if test="vo.createBy != null">
+    		CREATE_BY =  #{vo.createBy,jdbcType=VARCHAR },
+		</if>
+		<if test="vo.updateDate != null">
+    		UPDATE_DATE =  #{vo.updateDate,jdbcType=VARCHAR },
+		</if>
+		<if test="vo.updateBy != null">
+    		UPDATE_BY =  #{vo.updateBy,jdbcType=VARCHAR },
+		</if>
+    </set>
+    where ID = #{vo.id,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 根据ID删除信息 -->
+  <delete id="deleteComplaintsAndAdviceById" parameterType="java.lang.String" >
+    delete from PMS_COMPLAINTS_ADVICES
+    where ID =  #{id,jdbcType=DECIMAL }
+  </delete>
+</mapper>

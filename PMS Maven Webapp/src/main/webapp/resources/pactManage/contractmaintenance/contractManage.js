@@ -1,6 +1,10 @@
 /*
  *  @Description：主页面Js
+<<<<<<< HEAD
  *  @author：	raomingyi
+=======
+ *  @author：	Jasonzhang
+>>>>>>> branch 'master' of https://github.com/JasonZhangCauc/MAVEN-PMS.git
  *  @date：	2018-03-05
  */
 var ContractManage = {

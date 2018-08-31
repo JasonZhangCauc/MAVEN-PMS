@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.projectmanage.ProjectApprovalDao" >
+  <resultMap id="ProjectBaseInfoResultMap" type="com.ps.result.projectmanage.ProjectBaseInfoVo" >
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="PROJECT_NAME" property="projectName" jdbcType="VARCHAR" />
+    <result column="TO_DIVISION" property="toDivision" jdbcType="VARCHAR" />
+    <result column="PROJECT_HEAD" property="projectHead" jdbcType="VARCHAR" />
+    <result column="BUSINESS_PEOPLE" property="businessPeople" jdbcType="VARCHAR" />
+    <result column="PROJECT_MANAGER" property="projectManager" jdbcType="VARCHAR" />
+    <result column="PROJECT_RESOURCE" property="projectResource" jdbcType="VARCHAR" />
+    <result column="BEGIN_TIME" property="beginTime" jdbcType="VARCHAR" />
+    <result column="END_TIME" property="endTime" jdbcType="VARCHAR" />
+    <result column="ESTIMATED_WORKLOAD" property="estimatedWorkload" jdbcType="VARCHAR" />
+    <result column="EXPIRED_HOURS" property="expiredHours" jdbcType="VARCHAR" />
+    <result column="CONTRACT_AMOUNT" property="contractAmount" jdbcType="VARCHAR" />
+    <result column="PROFIT_TARGETS" property="profitTargets" jdbcType="VARCHAR" />
+    <result column="PROJECT_PHASE" property="projectPhase" jdbcType="VARCHAR" />
+    <result column="NATURALLY_COST" property="naturallyCost" jdbcType="VARCHAR" />
+    <result column="PROJECT_STATUS" property="projectStatus" jdbcType="VARCHAR" />
+    <result column="EXPIRATION_DATE" property="expirationDate" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="PROJECT_HEAD_NAME" property="projectHeadName" jdbcType="VARCHAR" />
+    <result column="BUSINESS_PEOPLE_NAME" property="businessPeopleName" jdbcType="VARCHAR" />
+    <result column="PROJECT_MANAGER_NAME" property="projectManagerName" jdbcType="VARCHAR" />
+    <result column="PROJECT_RESOURCE_NAME" property="projectResourceName" jdbcType="VARCHAR" />
+   	<result column="WORK_TIME" property="workTime" jdbcType="VARCHAR" />
+   	<result column="PRODUCT_MANAGER" property="productManager" jdbcType="VARCHAR" />
+   	<result column="PRODUCT_MANAGER_NAME" property="productManagerName" jdbcType="VARCHAR" />
+   	<result column="AUDIT_STATUS" property="auditStatus" jdbcType="VARCHAR" />
+   	<result column="projectPhaseStr" property="projectPhaseStr" jdbcType="VARCHAR" />
+   	<result column="BELONG_CUSTOM_ID" property="belongCustomId" jdbcType="VARCHAR" />
+   	<result column="SALE_RESPONSIBLE" property="saleResponsible" jdbcType="VARCHAR" />
+   	<result column="BELONG_PRODUCT" property="belongProduct" jdbcType="VARCHAR" />
+  </resultMap>
+  
+  <!-- 根据参数查询列表信息 -->
+  <select id="queryProjectApprovalByParam" resultMap="ProjectBaseInfoResultMap" parameterType="com.ps.result.projectmanage.ProjectBaseInfoVo" >
+    select * from(
+	    SELECT
+		f1.ID,
+		f1.PROJECT_NAME,
+		f1.TO_DIVISION,
+		to_char((SELECT wm_concat(t1.user_name) FROM pms_user t1 WHERE ','||f1.PROJECT_HEAD||',' LIKE '%,'||t1.id||',%'))PROJECT_HEAD_NAME,
+		PROJECT_HEAD,
+		to_char((SELECT wm_concat(t1.user_name) FROM pms_user t1 WHERE ','||f1.BUSINESS_PEOPLE||',' LIKE '%,'||t1.id||',%'))BUSINESS_PEOPLE_NAME,
+		BUSINESS_PEOPLE,
+		to_char((SELECT wm_concat(t1.user_name) FROM pms_user t1 WHERE ','||f1.PROJECT_MANAGER||',' LIKE '%,'||t1.id||',%'))PROJECT_MANAGER_NAME,
+		PROJECT_MANAGER,
+		to_char((SELECT wm_concat(t1.user_name) FROM pms_user t1 WHERE ','||f1.PROJECT_RESOURCE||',' LIKE '%,'||t1.id||',%'))PROJECT_RESOURCE_NAME,
+		f1.PROJECT_RESOURCE,
+		to_char((SELECT wm_concat(t1.user_name) FROM pms_user t1 WHERE ','||f1.PRODUCT_MANAGER||',' LIKE '%,'||t1.id||',%'))PRODUCT_MANAGER_NAME,
+		PRODUCT_MANAGER,
+		to_char(f1.BEGIN_TIME,'yyyy-mm-dd') BEGIN_TIME,
+		to_char(f1.END_TIME,'yyyy-mm-dd') END_TIME,
+		to_char(f1.BEGIN_TIME,'yyyy-mm-dd')||'至'||to_char(f1.END_TIME,'yyyy-mm-dd')WORK_TIME,
+		f1.ESTIMATED_WORKLOAD,
+		f1.EXPIRED_HOURS,
+		f1.CONTRACT_AMOUNT,
+		f1.PROFIT_TARGETS,
+		f1.PROJECT_PHASE,
+		f1.NATURALLY_COST,
+		f1.PROJECT_STATUS,
+		f1.EXPIRATION_DATE,
+		f1.CREATE_BY,
+		to_char(f1.CREATE_DATE,'yyyy-mm-dd') CREATE_DATE,
+		f1.AUDIT_STATUS
+		from PMS_PROJECT_BASEINFO f1
+		LEFT JOIN pms_user t6
+		  ON f1.create_by=t6.id
+		where 1=1
+		 <!-- 无权限 -->
+		 <if test="authority == 0">
+	       and 1!=1
+	     </if>
+		 <!-- 查看个人 -->
+	     <if test="authority == 1">
+	    	and t6.id = #{authUserId,jdbcType=VARCHAR }
+	     </if>
+	     <!-- 查看项目 -->
+	     <if test="authority == 2">
+	     	and ','||#{authDeptId,jdbcType=VARCHAR }||',' like '%,'||f1.TO_DIVISION||',%'
+	     </if>
+	     <!-- 查看部门 -->
+	     <if test="authority == 3">
+	    	<if test="authDeptId != null and authDeptId != '' and authDeptId != 'null' ">
+	    	  AND (
+			  <foreach collection="authDeptId.split(',')" item="authDept" index="index"
+			      open="" close="" separator="or">
+			      (','||t6.DEPT_ID||',' like '%,'||#{authDept,jdbcType=VARCHAR}||',%')
+			  </foreach>
+			  )
+	     	</if>
+	     	<if test="authDeptId == null or authDeptId == '' or authDeptId == 'null' ">
+			  AND 1!=1
+			</if>
+	     </if>
+	)m
+	where 1=1
+	<if test="projectName !=null and projectName !=''">
+		and m.PROJECT_NAME like '%'||#{projectName,jdbcType=VARCHAR}|| '%'
+	</if>
+	<if test="projectPhase !=null and projectPhase !=''">
+		and m.PROJECT_PHASE in (${projectPhase})
+	</if>
+	<if test="projectHeadName !=null and projectHeadName !=''">
+		and m.PROJECT_HEAD_NAME like '%'||#{projectHeadName,jdbcType=VARCHAR}|| '%'
+	</if>
+	<if test="businessPeopleName !=null and businessPeopleName !=''">
+		and m.BUSINESS_PEOPLE_NAME like '%'||#{businessPeopleName,jdbcType=VARCHAR}|| '%'
+	</if>
+	<if test="productManagerName !=null and productManagerName !=''">
+		and m.PRODUCT_MANAGER_NAME like '%'||#{productManagerName,jdbcType=VARCHAR}|| '%'
+	</if>
+	<if test="projectStatus !=null and projectStatus !=''">
+		and m.PROJECT_STATUS in (${projectStatus})
+	</if>
+	<if test="projectManagerName !=null and projectManagerName !=''">
+		and m.PROJECT_MANAGER_NAME like '%'||#{projectManagerName,jdbcType=VARCHAR}|| '%'
+	</if>
+	<!-- 开始结束不为空 -->
+	<if test="beginTime !=null and beginTime !='' and endTime !=null and endTime !=''">
+		AND NOT (
+		(to_date(m.END_TIME,'yyyy-mm-dd') &lt; to_date(#{endTime,jdbcType=VARCHAR},'yyyy-mm-dd'))
+		OR (to_date(m.BEGIN_TIME,'yyyy-mm-dd') &gt; to_date(#{beginTime,jdbcType=VARCHAR},'yyyy-mm-dd'))
+		)
+	</if>
+	<!-- 开始不为空，结束为空 -->
+	<if test="beginTime !=null and beginTime !='' and (endTime ==null or endTime =='')">
+		AND to_date(m.END_TIME,'yyyy-mm-dd') &gt; to_date(#{beginTime,jdbcType=VARCHAR},'yyyy-mm-dd')
+		AND to_date(m.BEGIN_TIME,'yyyy-mm-dd') &lt; to_date(#{beginTime,jdbcType=VARCHAR},'yyyy-mm-dd')
+	</if>
+	<!-- 开始为空，结束不为空 -->
+	<if test="(beginTime ==null or beginTime =='') and endTime !=null and endTime !=''">
+		AND to_date(m.BEGIN_TIME,'yyyy-mm-dd') &lt; to_date(#{endTime,jdbcType=VARCHAR},'yyyy-mm-dd')
+	</if>
+	<if test="auditStatus !=null and auditStatus !=''">
+		and m.AUDIT_STATUS in (${auditStatus})
+	</if>
+	<choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by m.CREATE_DATE DESC
+		</otherwise>
+	 </choose>
+  </select>
+  
+  <!-- 根据ID查询列表信息 -->
+  <select id="queryProjectApprovalfoById" resultMap="ProjectBaseInfoResultMap" parameterType="java.lang.String" >
+    select * from(
+	    SELECT
+		f1.ID,
+		f1.PROJECT_NAME,
+		f1.TO_DIVISION,
+		to_char((SELECT wm_concat(t1.user_name) FROM pms_user t1 WHERE ','||f1.PROJECT_HEAD||',' LIKE '%,'||t1.id||',%'))PROJECT_HEAD_NAME,
+		f1.PROJECT_HEAD,
+		to_char((SELECT wm_concat(t1.user_name) FROM pms_user t1 WHERE ','||f1.BUSINESS_PEOPLE||',' LIKE '%,'||t1.id||',%'))BUSINESS_PEOPLE_NAME,
+		f1.BUSINESS_PEOPLE,
+		to_char((SELECT wm_concat(t1.user_name) FROM pms_user t1 WHERE ','||f1.PROJECT_MANAGER||',' LIKE '%,'||t1.id||',%'))PROJECT_MANAGER_NAME,
+		f1.PROJECT_MANAGER,
+		to_char((SELECT wm_concat(t1.user_name) FROM pms_user t1 WHERE ','||f1.PROJECT_RESOURCE||',' LIKE '%,'||t1.id||',%'))PROJECT_RESOURCE_NAME,
+		f1.PROJECT_RESOURCE,
+		to_char((SELECT wm_concat(t1.user_name) FROM pms_user t1 WHERE ','||f1.PRODUCT_MANAGER||',' LIKE '%,'||t1.id||',%'))PRODUCT_MANAGER_NAME,
+		f1.PRODUCT_MANAGER,
+		to_char(f1.BEGIN_TIME,'yyyy-mm-dd') BEGIN_TIME,
+		to_char(f1.END_TIME,'yyyy-mm-dd') END_TIME,
+		to_char(f1.BEGIN_TIME,'yyyy-mm-dd')||'至'||to_char(f1.END_TIME,'yyyy-mm-dd')WORK_TIME,
+		f1.ESTIMATED_WORKLOAD,
+		f1.EXPIRED_HOURS,
+		f1.CONTRACT_AMOUNT,
+		f1.PROFIT_TARGETS,
+		f1.PROJECT_PHASE,
+		f1.NATURALLY_COST,
+		f1.PROJECT_STATUS,
+		f1.EXPIRATION_DATE,
+		f1.CREATE_BY,t2.code_zh projectPhaseStr,
+		to_char(f1.CREATE_DATE,'yyyy-mm-dd') CREATE_DATE,
+		f1.AUDIT_STATUS,
+		f1.BELONG_CUSTOM_ID,
+		f1.SALE_RESPONSIBLE,
+		f1.BELONG_PRODUCT
+		from PMS_PROJECT_BASEINFO f1 
+		left join pms_code t2 on f1.PROJECT_PHASE = t2.code_value
+		AND t2.CODE_TYPE = 'projectPhase'  and t2.WHETHER_PARENT = 1
+	)m
+	where 1=1
+    and m.ID =  #{id,jdbcType=DECIMAL}
+  </select>
+  
+  <!-- 根据ID删除信息 -->
+  <delete id="deleteProjectApproval" parameterType="java.lang.String" >
+    delete from PMS_PROJECT_BASEINFO
+    where ID =  #{id,jdbcType=DECIMAL }
+  </delete>
+  
+  <!-- 项目审核 -->
+  <update id="updateProjectApprovalStatus" parameterType="com.ps.result.projectmanage.ProjectBaseInfoVo" >
+  	update PMS_PROJECT_BASEINFO set AUDIT_STATUS = #{auditStatus,jdbcType=VARCHAR } where id =#{id,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 根据用户名称查询用户id并拼接 -->
+  <select id="getUserIdByUserName" resultType="java.lang.String">
+  	SELECT to_char(wm_concat(t1.id)) FROM pms_user t1 WHERE ','||#{userNames,jdbcType=VARCHAR}||',' LIKE '%,'||t1.user_name||',%'
+  </select>
+  
+  <!-- 修改信息 -->
+  <update id="updateProjectApproval" parameterType="com.ps.result.projectmanage.ProjectBaseInfoVo" >
+    update PMS_PROJECT_BASEINFO
+    <set >
+   		PROJECT_NAME =  #{projectName,jdbcType=VARCHAR },
+   		TO_DIVISION =  #{toDivision,jdbcType=VARCHAR },
+   		PROJECT_HEAD =  #{projectHead,jdbcType=VARCHAR },
+   		BUSINESS_PEOPLE =  #{businessPeople,jdbcType=VARCHAR },
+   		PROJECT_MANAGER =  #{projectManager,jdbcType=VARCHAR },
+   		PROJECT_RESOURCE =  #{projectResource,jdbcType=VARCHAR },
+   		PRODUCT_MANAGER = #{productManager,jdbcType=VARCHAR },
+   		BEGIN_TIME =  to_date(#{beginTime,jdbcType=VARCHAR },'yyyy-mm-dd'),
+   		END_TIME =  to_date(#{endTime,jdbcType=VARCHAR },'yyyy-mm-dd'),
+   		ESTIMATED_WORKLOAD =  #{estimatedWorkload,jdbcType=VARCHAR },
+   		EXPIRED_HOURS =  #{expiredHours,jdbcType=VARCHAR },
+   		CONTRACT_AMOUNT =  #{contractAmount,jdbcType=VARCHAR },
+   		PROFIT_TARGETS =  #{profitTargets,jdbcType=VARCHAR },
+   		PROJECT_PHASE =  #{projectPhase,jdbcType=VARCHAR },
+   		NATURALLY_COST =  #{naturallyCost,jdbcType=VARCHAR },
+   		PROJECT_STATUS =  #{projectStatus,jdbcType=VARCHAR },
+   		EXPIRATION_DATE =  #{expirationDate,jdbcType=VARCHAR },
+   		BELONG_CUSTOM_ID =  #{belongCustomId,jdbcType=VARCHAR },
+   		SALE_RESPONSIBLE =  #{saleResponsible,jdbcType=VARCHAR },
+   		BELONG_PRODUCT	= #{belongProduct,jdbcType=VARCHAR}
+    </set>
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 新增信息 -->
+  <insert id="insertProjectApproval" parameterType="com.ps.result.projectmanage.ProjectBaseInfoVo" >
+    insert into PMS_PROJECT_BASEINFO
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+	    ID,
+	    PROJECT_NAME,
+	    TO_DIVISION,
+	    PROJECT_HEAD,
+	    BUSINESS_PEOPLE,
+	    PROJECT_MANAGER,
+	    PROJECT_RESOURCE,
+	    PRODUCT_MANAGER,
+	    BEGIN_TIME,
+	    END_TIME,
+	    ESTIMATED_WORKLOAD,
+	    EXPIRED_HOURS,
+	    CONTRACT_AMOUNT,
+	    PROFIT_TARGETS,
+	    PROJECT_PHASE,
+	    NATURALLY_COST,
+	    PROJECT_STATUS,
+	    EXPIRATION_DATE,
+	    CREATE_BY,
+	    CREATE_DATE,
+	    AUDIT_STATUS,
+	    BELONG_CUSTOM_ID,
+	    SALE_RESPONSIBLE,
+	    BELONG_PRODUCT
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       pms_project_baseinfo_tb_seq.nextval,
+       #{projectName,jdbcType=VARCHAR },
+       #{toDivision,jdbcType=VARCHAR },
+       #{projectHead,jdbcType=VARCHAR },
+       #{businessPeople,jdbcType=VARCHAR },
+       #{projectManager,jdbcType=VARCHAR },
+       #{projectResource,jdbcType=VARCHAR },
+       #{productManager,jdbcType=VARCHAR },
+       to_date(#{beginTime,jdbcType=VARCHAR },'yyyy-mm-dd'),
+       to_date(#{endTime,jdbcType=VARCHAR },'yyyy-mm-dd'),
+       #{estimatedWorkload,jdbcType=VARCHAR },
+       #{expiredHours,jdbcType=VARCHAR },
+       #{contractAmount,jdbcType=VARCHAR },
+       #{profitTargets,jdbcType=VARCHAR },
+       #{projectPhase,jdbcType=VARCHAR },
+       #{naturallyCost,jdbcType=VARCHAR },
+       #{projectStatus,jdbcType=VARCHAR },
+       #{expirationDate,jdbcType=VARCHAR },
+       #{createBy,jdbcType=VARCHAR },
+       sysdate,
+       '0',
+       #{belongCustomId,jdbcType=VARCHAR },
+       #{saleResponsible,jdbcType=VARCHAR },
+       #{belongProduct,jdbcType=VARCHAR }
+    </trim>
+  </insert>
+</mapper>

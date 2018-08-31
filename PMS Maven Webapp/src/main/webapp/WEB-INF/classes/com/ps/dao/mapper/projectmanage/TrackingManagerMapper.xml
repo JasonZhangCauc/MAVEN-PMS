@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.projectmanage.TrackingManagerDao" >
+  <!-- 跟踪表实体类 -->
+  <resultMap id="TrackingResultMap" type="com.ps.result.projectmanage.TrackingVo" >
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="CAUSE_CLASSIFICATION" property="causeClassification" jdbcType="VARCHAR" />
+    <result column="CAUSE_ANALYSIS" property="causeAnalysis" jdbcType="VARCHAR" />
+    <result column="FEEDBACK_DATE" property="feedbackDate" jdbcType="VARCHAR" />
+    <result column="EXPECTED_TIME" property="expectedTime" jdbcType="VARCHAR" />
+    <result column="CANCEL_DATE" property="cancelDate" jdbcType="VARCHAR" />
+    <result column="PLANNED_LINE_DATE" property="plannedLineDate" jdbcType="VARCHAR" />
+    <result column="ACTUALLY_LINE_DATE" property="actuallyLineDate" jdbcType="VARCHAR" />
+    <result column="COMPLETE_DATE" property="completeDate" jdbcType="VARCHAR" />
+    <result column="ACTUAL_WORKING_HOURS" property="actualWorkingHours" jdbcType="VARCHAR" />
+    <result column="BATCH_NO" property="batchNo" jdbcType="VARCHAR" />
+    <result column="CUSTOMER_ID" property="customerId" jdbcType="VARCHAR" />
+    <result column="PROJECT_ID" property="projectId" jdbcType="VARCHAR" />
+    <result column="PUT_DEPT" property="putDept" jdbcType="VARCHAR" />
+    <result column="PUT_BY" property="putBy" jdbcType="VARCHAR" />
+    <result column="REGISTER_BY" property="registerBy" jdbcType="VARCHAR" />
+    <result column="PUT_DATE" property="putDate" jdbcType="VARCHAR" />
+    <result column="REQUIREMENT_TYPE" property="requirementType" jdbcType="VARCHAR" />
+    <result column="DESCRIBE" property="describe" jdbcType="VARCHAR" />
+    <result column="PRIORITY" property="priority" jdbcType="VARCHAR" />
+    <result column="WHETHER_PHASE_II" property="whetherPhaseIi" jdbcType="VARCHAR" />
+    <result column="EXPECT_ONLINE_DATE" property="expectOnlineDate" jdbcType="VARCHAR" />
+    <result column="WHETHER_SCOPE" property="whetherScope" jdbcType="VARCHAR" />
+    <result column="WHETHER_CONTRACT" property="whetherContract" jdbcType="VARCHAR" />
+    <result column="FEEDBACK_WAY" property="feedbackWay" jdbcType="VARCHAR" />
+    <result column="REQUIREMENT_STATUS" property="requirementStatus" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="DEMAND_NUM" property="demandNum" jdbcType="VARCHAR" />
+    <result column="CUSTOMER_NAME" property="customerName" jdbcType="VARCHAR" />
+    <result column="PROJECT_NAME" property="projectName" jdbcType="VARCHAR" />
+  </resultMap>
+  
+  <!-- 根据参数查询跟踪表列表信息 -->
+  <select id="queryTrackingInfoByParam" resultMap="TrackingResultMap" parameterType="com.ps.result.projectmanage.TrackingVo" >
+    select * from (
+	    SELECT t1.ID,
+	       t1.CUSTOMER_ID,
+	       t1.PROJECT_ID,
+	       t1.PUT_DEPT,
+	       t1.PUT_BY,
+	       t1.REGISTER_BY,
+	       to_char(t1.PUT_DATE,'YYYY-MM-DD') PUT_DATE,
+	       t1.REQUIREMENT_TYPE,
+	       t1.DESCRIBE,
+	       t1.PRIORITY,
+	       t1.WHETHER_PHASE_II,
+	       to_char(t1.EXPECT_ONLINE_DATE,'YYYY-MM-DD') EXPECT_ONLINE_DATE,
+	       t1.WHETHER_SCOPE,
+	       t1.WHETHER_CONTRACT,
+	       t1.FEEDBACK_WAY,
+	       t1.REQUIREMENT_STATUS,
+	       t1.CAUSE_CLASSIFICATION,
+	       t1.CAUSE_ANALYSIS,
+	       to_char(t1.FEEDBACK_DATE,'YYYY-MM-DD') FEEDBACK_DATE,
+	       t1.EXPECTED_TIME,
+	       to_char(t1.CANCEL_DATE,'YYYY-MM-DD') CANCEL_DATE,
+	       to_char(t1.PLANNED_LINE_DATE,'YYYY-MM-DD') PLANNED_LINE_DATE,
+	       to_char(t1.ACTUALLY_LINE_DATE,'YYYY-MM-DD') ACTUALLY_LINE_DATE,
+	       to_char(t1.COMPLETE_DATE,'YYYY-MM-DD') COMPLETE_DATE,
+	       t1.ACTUAL_WORKING_HOURS,
+	       t1.BATCH_NO,
+	       t1.CREATE_BY,
+	       to_char(t1.CREATE_DATE,'YYYY-MM-DD') CREATE_DATE,
+	       t1.DEMAND_NUM,
+		   t2.project_name PROJECT_NAME,
+		   t3.custom_name CUSTOMER_NAME 
+	  FROM PMS_TRACKING t1 
+		LEFT JOIN pms_project_baseinfo t2 ON t1.project_id=t2.id
+		LEFT JOIN pms_customer t3 ON t1.customer_id=t3.id
+		LEFT JOIN pms_user t4 ON t1.create_by=t4.id
+		LEFT JOIN pms_project_baseinfo t5 ON t1.project_id=t5.id
+		where 1=1
+		 <!-- 无权限 -->
+		 <if test="authority == 0">
+	       and 1!=1
+	     </if>
+		 <!-- 查看个人 -->
+	     <if test="authority == 1">
+	    	and t4.id = #{authUserId,jdbcType=VARCHAR }
+	     </if>
+	     <!-- 查看项目 -->
+	     <if test="authority == 2">
+	     	and ','||#{authDeptId,jdbcType=VARCHAR }||',' like '%,'||t5.TO_DIVISION||',%'
+	     </if>
+	     <!-- 查看部门 -->
+	     <if test="authority == 3">
+	    	<if test="authDeptId != null and authDeptId != '' and authDeptId != 'null' ">
+	    	  AND (
+			  <foreach collection="authDeptId.split(',')" item="authDept" index="index"
+			      open="" close="" separator="or">
+			      (','||t4.DEPT_ID||',' like '%,'||#{authDept,jdbcType=VARCHAR}||',%')
+			  </foreach>
+			  )
+	     	</if>
+	     	<if test="authDeptId == null or authDeptId == '' or authDeptId == 'null' ">
+			  AND 1!=1
+			</if>
+	     </if>
+    )m
+    where 1=1
+    <if test="customerName !=null and customerName !=''">
+    	and m.CUSTOMER_NAME like '%'||#{customerName,jdbcType=VARCHAR}|| '%'
+    </if>
+    <if test="projectId !=null and projectId !=''">
+    	and m.PROJECT_ID in (${projectId})
+    </if>
+    <if test="requirementStatus !=null and requirementStatus !=''">
+    	and m.REQUIREMENT_STATUS in (${requirementStatus})
+    </if>
+    <if test="requirementType !=null and requirementType !=''">
+    	and m.REQUIREMENT_TYPE in (${requirementType})
+    </if>
+    <if test="priority !=null and priority !=''">
+    	and m.PRIORITY in (${priority})
+    </if>
+    <if test="whetherScope !=null and whetherScope !=''">
+    	and m.WHETHER_SCOPE in (${whetherScope})
+    </if>
+    <if test="whetherPhaseIi !=null and whetherPhaseIi !=''">
+    	and m.WHETHER_PHASE_II  in (${whetherPhaseIi})
+    </if>
+    <if test="batchNo !=null and batchNo !=''">
+    	and m.BATCH_NO like '%'||#{batchNo,jdbcType=VARCHAR}|| '%'
+    </if>
+    <if test="putBeginDate !=null and putBeginDate !=''">
+    	and  to_date(m.PUT_DATE,'YYYY-MM-DD') &gt;= to_date(#{putBeginDate,jdbcType=VARCHAR},'YYYY-MM-DD')
+    </if>
+    <if test="putEndDate !=null and putEndDate !=''">
+    	and  to_date(m.PUT_DATE,'YYYY-MM-DD') &lt;= to_date(#{putEndDate,jdbcType=VARCHAR},'YYYY-MM-DD')
+    </if>
+    <if test="describe !=null and describe !=''">
+    	and m.describe like '%'||#{describe,jdbcType=VARCHAR}|| '%'
+    </if>
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by m.CREATE_DATE DESC
+		</otherwise>
+	 </choose>
+    
+  </select>
+  
+  <!-- 根据ID查询跟踪表列表信息 -->
+  <select id="queryTrackingById" resultMap="TrackingResultMap" parameterType="java.lang.String" >
+    select * from (
+	    SELECT t1.ID,
+	       t1.CUSTOMER_ID,
+	       t1.PROJECT_ID,
+	       t1.PUT_DEPT,
+	       t1.PUT_BY,
+	       t1.REGISTER_BY,
+	       to_char(t1.PUT_DATE,'YYYY-MM-DD') PUT_DATE,
+	       t1.REQUIREMENT_TYPE,
+	       t1.DESCRIBE,
+	       t1.PRIORITY,
+	       t1.WHETHER_PHASE_II,
+	       to_char(t1.EXPECT_ONLINE_DATE,'YYYY-MM-DD') EXPECT_ONLINE_DATE,
+	       t1.WHETHER_SCOPE,
+	       t1.WHETHER_CONTRACT,
+	       t1.FEEDBACK_WAY,
+	       t1.REQUIREMENT_STATUS,
+	       t1.CAUSE_CLASSIFICATION,
+	       t1.CAUSE_ANALYSIS,
+	       to_char(t1.FEEDBACK_DATE,'YYYY-MM-DD') FEEDBACK_DATE,
+	       t1.EXPECTED_TIME,
+	       to_char(t1.CANCEL_DATE,'YYYY-MM-DD') CANCEL_DATE,
+	       to_char(t1.PLANNED_LINE_DATE,'YYYY-MM-DD') PLANNED_LINE_DATE,
+	       to_char(t1.ACTUALLY_LINE_DATE,'YYYY-MM-DD') ACTUALLY_LINE_DATE,
+	       to_char(t1.COMPLETE_DATE,'YYYY-MM-DD') COMPLETE_DATE,
+	       t1.ACTUAL_WORKING_HOURS,
+	       t1.BATCH_NO,
+	       t1.CREATE_BY,
+	       to_char(t1.CREATE_DATE,'YYYY-MM-DD') CREATE_DATE,
+	       t1.DEMAND_NUM,
+		   t2.project_name PROJECT_NAME,
+		   t3.custom_name CUSTOMER_NAME 
+	  FROM PMS_TRACKING t1 
+		LEFT JOIN pms_project_baseinfo t2 ON t1.project_id=t2.id
+		LEFT JOIN pms_customer t3 ON t1.customer_id=t3.id
+    )m
+    where 1=1
+    AND m.ID =  #{id,jdbcType=DECIMAL }
+  </select>
+  
+  <!-- 新增跟踪表信息 -->
+  <insert id="insertTracking" parameterType="com.ps.result.projectmanage.TrackingVo" >
+  	<selectKey  resultType="java.lang.String" order="BEFORE" keyProperty="id">
+          SELECT PMS_TRACKING_TB_SEQ.Nextval as id FROM  DUAL
+    </selectKey>
+    insert into PMS_TRACKING
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+    	ID,
+	    CAUSE_CLASSIFICATION,
+	    CAUSE_ANALYSIS,
+	    FEEDBACK_DATE,
+	    EXPECTED_TIME,
+	    CANCEL_DATE,
+	    PLANNED_LINE_DATE,
+	    ACTUALLY_LINE_DATE,
+	    COMPLETE_DATE,
+	    ACTUAL_WORKING_HOURS,
+	    BATCH_NO,
+	    CUSTOMER_ID,
+	    PROJECT_ID,
+	    PUT_DEPT,
+	    PUT_BY,
+	    REGISTER_BY,
+	    PUT_DATE,
+	    REQUIREMENT_TYPE,
+	    DESCRIBE,
+	    PRIORITY,
+	    WHETHER_PHASE_II,
+	    EXPECT_ONLINE_DATE,
+	    WHETHER_SCOPE,
+	    WHETHER_CONTRACT,
+	    FEEDBACK_WAY,
+	    REQUIREMENT_STATUS,
+	    CREATE_BY,
+	    CREATE_DATE,
+	    DEMAND_NUM
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       #{id,jdbcType=VARCHAR },
+       #{causeClassification,jdbcType=VARCHAR },
+       #{causeAnalysis,jdbcType=VARCHAR },
+       to_date(#{feedbackDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+       #{expectedTime,jdbcType=VARCHAR },
+       to_date(#{cancelDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+       to_date(#{plannedLineDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+       to_date(#{actuallyLineDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+       to_date(#{completeDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+       #{actualWorkingHours,jdbcType=VARCHAR },
+       #{batchNo,jdbcType=VARCHAR },
+       #{customerId,jdbcType=VARCHAR },
+       #{projectId,jdbcType=VARCHAR },
+       #{putDept,jdbcType=VARCHAR },
+       #{putBy,jdbcType=VARCHAR },
+       #{registerBy,jdbcType=VARCHAR },
+       to_date(#{putDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+       #{requirementType,jdbcType=VARCHAR },
+       #{describe,jdbcType=VARCHAR },
+       #{priority,jdbcType=VARCHAR },
+       #{whetherPhaseIi,jdbcType=VARCHAR },
+       to_date(#{expectOnlineDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+       #{whetherScope,jdbcType=VARCHAR },
+       #{whetherContract,jdbcType=VARCHAR },
+       #{feedbackWay,jdbcType=VARCHAR },
+       #{requirementStatus,jdbcType=VARCHAR },
+       #{createBy,jdbcType=VARCHAR },
+       sysdate,
+       #{demandNum,jdbcType=VARCHAR },
+    </trim>
+  </insert>
+  
+  <!-- 修改跟踪表信息 -->
+  <update id="updateTracking" parameterType="com.ps.result.projectmanage.TrackingVo" >
+    update PMS_TRACKING
+    <set >
+   		CAUSE_CLASSIFICATION =  #{causeClassification,jdbcType=VARCHAR },
+   		CAUSE_ANALYSIS =  #{causeAnalysis,jdbcType=VARCHAR },
+   		<if test="feedbackDate != null and feedbackDate != ''">
+   			FEEDBACK_DATE =  to_date(#{feedbackDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+   		</if>
+   		<if test="feedbackDate == null or feedbackDate == ''">
+   			FEEDBACK_DATE = null,
+   		</if>
+   		EXPECTED_TIME =  #{expectedTime,jdbcType=VARCHAR },
+   		<if test="cancelDate != null and cancelDate != ''">
+   			CANCEL_DATE =   to_date(#{cancelDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+   		</if>
+   		<if test="cancelDate == null or cancelDate == ''">
+   			CANCEL_DATE = null,
+   		</if>
+   		<if test="plannedLineDate != null and plannedLineDate != ''">
+   			PLANNED_LINE_DATE =  to_date(#{plannedLineDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+   		</if>
+   		<if test="plannedLineDate == null or plannedLineDate == ''">
+   			PLANNED_LINE_DATE = null,
+   		</if>
+   		<if test="actuallyLineDate != null and actuallyLineDate != ''">
+   			ACTUALLY_LINE_DATE =  to_date(#{actuallyLineDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+   		</if>
+   		<if test="actuallyLineDate == null or actuallyLineDate == ''">
+   			ACTUALLY_LINE_DATE = null,
+   		</if>
+   		<if test="completeDate != null and completeDate != ''">
+   			COMPLETE_DATE =  to_date(#{completeDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+   		</if>
+   		<if test="completeDate == null or completeDate == ''">
+   			COMPLETE_DATE = null,
+   		</if>
+   		ACTUAL_WORKING_HOURS =  #{actualWorkingHours,jdbcType=VARCHAR },
+   		BATCH_NO =  #{batchNo,jdbcType=VARCHAR },
+   		CUSTOMER_ID =  #{customerId,jdbcType=VARCHAR },
+   		PROJECT_ID =  #{projectId,jdbcType=VARCHAR },
+   		PUT_DEPT =  #{putDept,jdbcType=VARCHAR },
+   		PUT_BY =  #{putBy,jdbcType=VARCHAR },
+   		REGISTER_BY =  #{registerBy,jdbcType=VARCHAR },
+   		<if test="putDate != null and putDate != ''">
+   			PUT_DATE =  to_date(#{putDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+   		</if>
+   		<if test="putDate == null or putDate == ''">
+   			PUT_DATE = null,
+   		</if>
+   		REQUIREMENT_TYPE =  #{requirementType,jdbcType=VARCHAR },
+   		DESCRIBE =  #{describe,jdbcType=VARCHAR },
+   		PRIORITY =  #{priority,jdbcType=VARCHAR },
+   		WHETHER_PHASE_II =  #{whetherPhaseIi,jdbcType=VARCHAR },
+   		<if test="expectOnlineDate != null and expectOnlineDate != ''">
+   			EXPECT_ONLINE_DATE =  to_date(#{expectOnlineDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+   		</if>
+   		<if test="expectOnlineDate == null or expectOnlineDate == ''">
+   			EXPECT_ONLINE_DATE = null,
+   		</if>
+   		WHETHER_SCOPE =  #{whetherScope,jdbcType=VARCHAR },
+   		WHETHER_CONTRACT =  #{whetherContract,jdbcType=VARCHAR },
+   		FEEDBACK_WAY =  #{feedbackWay,jdbcType=VARCHAR }
+    </set>
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 根据ID删除跟踪表信息 -->
+  <delete id="deleteTrackingById" parameterType="java.lang.String" >
+    delete from PMS_TRACKING
+    where ID =  #{id,jdbcType=DECIMAL }
+  </delete>
+</mapper>

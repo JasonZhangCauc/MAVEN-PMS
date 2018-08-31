@@ -4,8 +4,13 @@ import com.ps.result.common.PageParaVo;
 
 /** 
  * @Description: 合同跟踪VO
+<<<<<<< HEAD
  * @author：		raomingyi
  * @date：		2018-03-21 
+=======
+ * @author：		Jasonzhang
+ * @date：		2018-08-21 
+>>>>>>> branch 'master' of https://github.com/JasonZhangCauc/MAVEN-PMS.git
  */
 public class ContractExecuInfoVo extends PageParaVo<ContractExecuInfoVo>{
 	

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.projectmanage.ProjectMoniInfoDao" >
+  <resultMap id="BaseResultMap" type="com.ps.result.projectmanage.ProjectMoniInfoVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="MONI_STATUS" property="moniStatus" jdbcType="VARCHAR" />
+    <result column="MONI_TITLE" property="moniTitle" jdbcType="VARCHAR" />
+    <result column="MONI_START_DATE" property="moniStartDate" jdbcType="VARCHAR" />
+    <result column="MONI_END_DATE" property="moniEndDate" jdbcType="VARCHAR" />
+    <result column="MONI_INSTRUCTION" property="moniInstruction" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="UPDATE_BY" property="updateBy" jdbcType="VARCHAR" />
+    <result column="UPDATE_DATE" property="updateDate" jdbcType="VARCHAR" />
+    <result column="PROJECT_BASEINFO_ID" property="projectBaseinfoId" jdbcType="VARCHAR" />
+  </resultMap>
+  <!--查询字段 所有的表字段-->
+  <sql id="Base_Column_List" >
+    ID,
+    MONI_STATUS,
+    MONI_TITLE,
+    to_char(MONI_START_DATE,'yyyy-mm-dd')MONI_START_DATE,
+    to_char(MONI_END_DATE,'yyyy-mm-dd')MONI_END_DATE,
+    MONI_INSTRUCTION,
+    CREATE_BY,
+    CREATE_DATE,
+    UPDATE_BY,
+    UPDATE_DATE,
+    PROJECT_BASEINFO_ID
+  </sql>
+  
+  <!-- 根据参数查询列表信息 -->
+  <select id="queryProjectMoniInfoInfoByParam" resultMap="BaseResultMap" parameterType="com.ps.result.projectmanage.ProjectMoniInfoVo" >
+    select
+    <include refid="Base_Column_List" />
+    from PMS_MONI_INFO where 1 = 1 and PROJECT_BASEINFO_ID = #{projectBaseinfoId,jdbcType=DECIMAL}
+  </select>
+  
+  <!-- 根据ID查询列表信息 -->
+  <select id="queryProjectMoniInfoById" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from PMS_MONI_INFO
+    where ID =  #{id,jdbcType=DECIMAL }
+  </select>
+  
+  <!-- 新增信息 -->
+  <insert id="insertProjectMoniInfo" parameterType="com.ps.result.projectmanage.ProjectMoniInfoVo" >
+    insert into PMS_MONI_INFO
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+	    ID,
+	    MONI_STATUS,
+	    MONI_TITLE,
+	    MONI_START_DATE,
+	    MONI_END_DATE,
+	    MONI_INSTRUCTION,
+	    CREATE_BY,
+	    CREATE_DATE,
+	    UPDATE_BY,
+	    UPDATE_DATE,
+	    PROJECT_BASEINFO_ID,
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       PMS_MONI_INFO_SEQ.nextval,
+       #{vo.moniStatus,jdbcType=VARCHAR },
+       #{vo.moniTitle,jdbcType=VARCHAR },
+       #{vo.moniStartDate,jdbcType=VARCHAR },
+       #{vo.moniEndDate,jdbcType=VARCHAR },
+       #{vo.moniInstruction,jdbcType=VARCHAR },
+       #{vo.createBy,jdbcType=VARCHAR },
+       sysdate,
+       #{vo.updateBy,jdbcType=VARCHAR },
+       #{vo.updateDate,jdbcType=VARCHAR },
+       #{vo.projectBaseinfoId,jdbcType=VARCHAR }
+    </trim>
+  </insert>
+  
+  <!-- 修改信息 -->
+  <update id="updateProjectMoniInfo" parameterType="com.ps.result.projectmanage.ProjectMoniInfoVo" >
+    update PMS_MONI_INFO
+    set 
+    MONI_START_DATE =  to_date(#{moniStartDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+    MONI_END_DATE =  to_date(#{moniEndDate,jdbcType=VARCHAR },'YYYY-MM-DD'),
+    MONI_INSTRUCTION =  #{moniInstruction,jdbcType=VARCHAR },
+    MONI_STATUS = #{moniStatus,jdbcType=VARCHAR}
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 根据ID删除信息 -->
+  <delete id="deleteProjectMoniInfoById" parameterType="java.lang.String" >
+    delete from PMS_MONI_INFO
+    where ID =  #{id,jdbcType=DECIMAL }
+  </delete>
+</mapper>

@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.taskManage.WorkhoursRecordDao" >
+  <resultMap id="WorkhoursRecordMap" type="com.ps.result.taskmanage.WorkhoursRecordVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="WORKER_ID" property="workerId" jdbcType="VARCHAR" />
+    <result column="PROJECT_ID" property="projectId" jdbcType="VARCHAR" />
+    <result column="WORKING_TYPE" property="workingType" jdbcType="VARCHAR" />
+    <result column="WORKING_HOURS" property="workingHours" jdbcType="VARCHAR" />
+    <result column="WORK_DESC" property="workDesc" jdbcType="VARCHAR" />
+    <result column="WORK_DATE" property="workDate" jdbcType="VARCHAR" />
+    <result column="STATUS" property="status" jdbcType="VARCHAR" />
+    <result column="REMARK" property="remark" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="UPDATE_BY" property="updateBy" jdbcType="VARCHAR" />
+    <result column="UPDATE_DATE" property="updateDate" jdbcType="VARCHAR" />
+    <result column="worker_name" property="workerName" jdbcType="VARCHAR" />
+    <result column="project_name" property="projectName" jdbcType="VARCHAR" />
+  </resultMap>
+  <!--查询字段 所有的表字段-->
+  <sql id="Base_Column_List" >
+    ID,
+    WORKER_ID,
+    PROJECT_ID,
+    WORKING_TYPE,
+    WORKING_HOURS,
+    WORK_DESC,
+    WORK_DATE,
+    STATUS,
+    REMARK,
+    CREATE_BY,
+    CREATE_DATE,
+    UPDATE_BY,
+    UPDATE_DATE,
+    worker_name,
+    project_name
+  </sql>
+  
+  <!-- 根据参数查询列表信息 -->
+  <select id="queryWorkhoursRecordInfoByParam" resultMap="WorkhoursRecordMap" parameterType="com.ps.result.taskmanage.WorkhoursRecordVo" >
+    select
+      pw.ID,
+      pw.WORKER_ID,
+      pw.PROJECT_ID,
+      pw.WORKING_TYPE,
+      pw.WORKING_HOURS,
+      pw.WORK_DESC,
+      to_char(pw.WORK_DATE,'YYYY-MM-DD') WORK_DATE,
+      pw.STATUS,
+      pw.REMARK,
+      pw.CREATE_BY,
+      pw.CREATE_DATE,
+      pu.user_name worker_name,
+      pp.project_name project_name
+  from PMS_WORKHOURS_RECORD pw
+  left join pms_user pu on pw.worker_id  = pu.id
+  left join PMS_PROJECT_BASEINFO pp on pw.PROJECT_ID = pp.id
+  where 1=1
+    <if test="workerName !='' and workerName != null " >
+        and pu.user_name like '%'||#{workerName,jdbcType=VARCHAR}||'%'
+    </if>
+    <if test="workDate !='' and workDate != null">
+        and pw.WORK_DATE = to_date(#{workDate,jdbcType=VARCHAR },'YYYY-MM-DD')
+    </if>
+    <if test="status != null and status != ''">
+	    and pw.status in (${status})
+    </if>
+    <if test="projectId != null and projectId != ''">
+	    and ','||#{projectId,jdbcType=VARCHAR }||',' like '%,'||pp.ID||',%'
+    </if>
+    <if test="authority == 0">
+       and 1!=1
+    </if>
+    <!-- 查看个人 -->
+    <if test="authority == 1">
+    	and pw.CREATE_BY = #{authUserId,jdbcType=VARCHAR }
+    </if>
+    <!-- 查看项目 -->
+    <if test="authority == 2">
+     	and ','||#{authDeptId,jdbcType=VARCHAR }||',' like '%,'||pp.TO_DIVISION||',%'
+    </if>
+    <!-- 查看部门 -->
+    <if test="authority == 3">
+       <if test="authDeptId != null and authDeptId != '' and authDeptId != 'null' ">
+    	  AND (
+		  <foreach collection="authDeptId.split(',')" item="authDept" index="index"
+		      open="" close="" separator="or">
+		      (','||pu.DEPT_ID||',' like '%,'||#{authDept,jdbcType=VARCHAR}||',%')
+		  </foreach>
+		  )
+     	</if>
+     	<if test="authDeptId == null or authDeptId == '' or authDeptId == 'null' ">
+		  AND 1!=1
+		</if>
+    </if>
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by pw.CREATE_DATE
+		</otherwise>
+	</choose>
+  </select>
+  
+  <!-- 根据ID查询列表信息 -->
+  <select id="queryWorkhoursRecordById" resultMap="WorkhoursRecordMap" parameterType="java.lang.String" >
+    select 
+      pw.ID,
+      pw.WORKER_ID,
+      pw.PROJECT_ID,
+      pw.WORKING_TYPE,
+      pw.WORKING_HOURS,
+      pw.WORK_DESC,
+      to_char(pw.WORK_DATE,'YYYY-MM-DD') WORK_DATE,
+      pw.STATUS,
+      pw.REMARK,
+      pw.CREATE_BY,
+      pw.CREATE_DATE,
+      pu.user_name worker_name,
+      pp.project_name project_name
+  from PMS_WORKHOURS_RECORD pw
+  left join pms_user pu on pw.worker_id  = pu.id
+  left join PMS_PROJECT_BASEINFO pp on pw.PROJECT_ID = pp.id
+   where pw.ID =  #{id,jdbcType=DECIMAL }
+  </select>
+  
+  <!-- 新增信息 -->
+  <insert id="insertWorkhoursRecord" parameterType="com.ps.result.taskmanage.WorkhoursRecordVo" >
+    insert into PMS_WORKHOURS_RECORD
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+	    ID,
+	    WORKER_ID,
+	    PROJECT_ID,
+	    WORKING_TYPE,
+	    WORKING_HOURS,
+	    WORK_DESC,
+	    WORK_DATE,
+	    STATUS,
+	    REMARK,
+	    CREATE_BY,
+	    CREATE_DATE
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       PMS_WORKHOURS_RECORD_SEQ.NEXTVAL,
+       #{workerId,jdbcType=VARCHAR },
+       #{projectId,jdbcType=VARCHAR },
+       #{workingType,jdbcType=VARCHAR },
+       #{workingHours,jdbcType=VARCHAR },
+       #{workDesc,jdbcType=VARCHAR },
+       to_date(#{workDate,jdbcType=VARCHAR },'yyyy-mm-dd'),
+       #{status,jdbcType=VARCHAR },
+       #{remark,jdbcType=VARCHAR },
+       #{createBy,jdbcType=VARCHAR },
+        sysdate    
+    </trim>
+  </insert>
+  
+  <!-- 修改工时信息 -->
+  <update id="updateWorkhoursRecord" parameterType="com.ps.result.taskmanage.WorkhoursRecordVo" >
+    update PMS_WORKHOURS_RECORD set
+	
+		<if test="workerId != null">
+    		WORKER_ID =  #{workerId,jdbcType=VARCHAR },
+		</if>
+		<if test="projectId != null">
+    		PROJECT_ID =  #{projectId,jdbcType=VARCHAR },
+		</if>
+		<if test="workingType != null">
+    		WORKING_TYPE =  #{workingType,jdbcType=VARCHAR },
+		</if>
+		<if test="workingHours != null">
+    		WORKING_HOURS =  #{workingHours,jdbcType=VARCHAR },
+		</if>
+		<if test="workDate !='' and workDate != null">
+			WORK_DATE = to_date(#{workDate,jdbcType=VARCHAR },'yyyy-mm-dd'),
+		</if>
+    		WORK_DESC =  #{workDesc,jdbcType=VARCHAR },
+			
+    		REMARK =  #{remark,jdbcType=VARCHAR },	
+		<if test="updateBy != null">
+    		UPDATE_BY =  #{updateBy,jdbcType=VARCHAR },
+		</if>
+    		UPDATE_DATE = sysdate
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  <!-- 工时审核状态修改 -->
+  <update id="updateRecordStatus" parameterType="com.ps.result.taskmanage.WorkhoursRecordVo" >
+      update PMS_WORKHOURS_RECORD set status = #{status,jdbcType=VARCHAR}
+     WHERE ID = #{id,jdbcType=VARCHAR}
+  </update>
+  <!-- 根据ID删除信息 -->
+  <delete id="deleteWorkhoursRecordById" parameterType="java.lang.String" >
+    delete from PMS_WORKHOURS_RECORD
+    where ID =  #{id,jdbcType=DECIMAL }
+  </delete>
+  
+  <!-- 根据参数查询列表信息 -->
+  <select id="queryWorkhoursTotalByParam" resultType="java.lang.String" parameterType="com.ps.result.taskmanage.WorkhoursRecordVo" >
+    select     
+      sum(pw.WORKING_HOURS)     
+    from PMS_WORKHOURS_RECORD pw
+    left join pms_user pu on pw.worker_id  = pu.id
+    left join PMS_PROJECT_BASEINFO pp on pw.PROJECT_ID = pp.id
+    where 1=1
+    <if test="workerName !='' and workerName != null " >
+        and pu.user_name like '%'||#{workerName,jdbcType=VARCHAR}||'%'
+    </if>
+    <if test="workDate !='' and workDate != null">
+        and pw.WORK_DATE = to_date(#{workDate,jdbcType=VARCHAR },'YYYY-MM-DD')
+    </if>
+    <!-- 查看个人 -->
+    <if test="authority == 1">
+    	and pw.CREATE_BY = #{authUserId,jdbcType=VARCHAR }
+    </if>
+    <!-- 查看项目 -->
+    <if test="authority == 2">
+     	and ','||#{authDeptId,jdbcType=VARCHAR }||',' like '%,'||pp.TO_DIVISION||',%'
+    </if>
+    <!-- 查看部门 -->
+    <if test="authority == 3">
+       <if test="authDeptId != null and authDeptId != '' and authDeptId != 'null' ">
+    	  AND (
+		  <foreach collection="authDeptId.split(',')" item="authDept" index="index"
+		      open="" close="" separator="or">
+		      (','||pu.DEPT_ID||',' like '%,'||#{authDept,jdbcType=VARCHAR}||',%')
+		  </foreach>
+		  )
+     	</if>
+     	<if test="authDeptId == null or authDeptId == '' or authDeptId == 'null' ">
+		  AND 1!=1
+		</if>
+    </if>
+ </select>
+  
+</mapper>

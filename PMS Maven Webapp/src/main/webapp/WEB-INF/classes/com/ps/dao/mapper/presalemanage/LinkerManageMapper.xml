@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.presalemanage.LinkerManageDao" >
+<!-- 联系人映射类 -->
+  <resultMap id="LinkerResultMap" type="com.ps.result.presalemanage.LinkerVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="UPDATE_BY" property="updateBy" jdbcType="VARCHAR" />
+    <result column="UPDATE_DATE" property="updateDate" jdbcType="VARCHAR" />
+    <result column="EMAIL" property="email" jdbcType="VARCHAR" />
+    <result column="QQ_CARD" property="qqCard" jdbcType="VARCHAR" />
+    <result column="REMARK" property="remark" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="STATUS" property="status" jdbcType="VARCHAR" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="CUSTOMER_ID" property="customerId" jdbcType="VARCHAR" />
+    <result column="CONTACT_NAME" property="contactName" jdbcType="VARCHAR" />
+    <result column="MOBILE_PHONE" property="mobilePhone" jdbcType="VARCHAR" />
+    <result column="POSITION_DESCRIBE" property="positionDescribe" jdbcType="VARCHAR" />
+    <result column="FIXED_PHONE" property="fixedPhone" jdbcType="VARCHAR" />
+    <result column="CUSTOM_NAME" property="customName" jdbcType="VARCHAR" />
+  </resultMap>
+  <!--查询字段 联系人所有的表字段-->
+  <sql id="Linker_Column_List" >
+    UPDATE_BY,
+    to_char(UPDATE_DATE,'yyyy-mm-dd') updateDate,
+    EMAIL,
+    QQ_CARD,
+    REMARK,
+    CREATE_BY,
+    CREATE_DATE,
+    ID,
+    CUSTOMER_ID,
+    CONTACT_NAME,
+    MOBILE_PHONE,
+    POSITION_DESCRIBE,
+    FIXED_PHONE,
+    STATUS
+  </sql>
+  
+  
+  <!-- 根据参数查询列表信息 -->
+  <select id="queryLinkerInfoByParam" resultMap="LinkerResultMap" parameterType="com.ps.result.presalemanage.LinkerVo" >
+    select
+	    t1.UPDATE_BY,
+	    to_char(t1.UPDATE_DATE,'yyyy-mm-dd') updateDate,
+	    t1.EMAIL,
+	    t1.QQ_CARD,
+	    t1.REMARK,
+	    t1.CREATE_BY,
+	    t1.CREATE_DATE,
+	    t1.ID,
+	    t1.CUSTOMER_ID,
+	    t1.CONTACT_NAME,
+	    t1.MOBILE_PHONE,
+	    t1.POSITION_DESCRIBE,
+	    t1.FIXED_PHONE,
+	    t1.STATUS,
+	    t2.CUSTOM_NAME
+    from PMS_CONTACT t1 left join PMS_CUSTOMER t2 on t1.CUSTOMER_ID = t2.id
+    where t1.status=0
+    <if test="customerId !=null and customerId !=''">
+    	and t1.CUSTOMER_ID=  #{customerId,jdbcType=DECIMAL }
+   	</if>
+   	<if test="customName !=null and customName !=''">
+    	and t1.CONTACT_NAME like '%'||#{customName}|| '%'
+   	</if>
+    
+     <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by Create_date DESC
+		</otherwise>
+	 </choose>
+  </select>
+  
+  
+  <!-- 根据参数查询列表信息 -->
+  <select id="queryLinkerInfoByParamCustomeName" resultMap="LinkerResultMap" parameterType="com.ps.result.presalemanage.LinkerVo" >
+    select
+	    t1.UPDATE_BY,
+	    to_char(t1.UPDATE_DATE,'yyyy-mm-dd') updateDate,
+	    t1.EMAIL,
+	    t1.QQ_CARD,
+	    t1.REMARK,
+	    t1.CREATE_BY,
+	    t1.CREATE_DATE,
+	    t1.ID,
+	    t1.CUSTOMER_ID,
+	    t1.CONTACT_NAME,
+	    t1.MOBILE_PHONE,
+	    t1.POSITION_DESCRIBE,
+	    t1.FIXED_PHONE,
+	    t1.STATUS,
+	    t2.CUSTOM_NAME
+    from  PMS_CUSTOMER t2 left join  PMS_CONTACT t1 on t2.id = t1.CUSTOMER_ID
+    where t1.status=0
+    <if test="customerId !=null and customerId !=''">
+    	and t1.CUSTOMER_ID=  #{customerId,jdbcType=DECIMAL }
+   	</if>
+   	<if test="customName !=null and customName !=''">
+    	and t2.CUSTOM_NAME like '%'||#{customName}|| '%'
+   	</if>
+     <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by Create_date DESC
+		</otherwise>
+	 </choose>
+  </select>
+  
+  <!-- 根据ID查询列表信息 -->
+  <select id="queryLinkerById" resultMap="LinkerResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Linker_Column_List" />
+    from PMS_CONTACT
+    where ID =  #{id,jdbcType=DECIMAL }
+  </select>
+  
+  <!-- 新增信息 -->
+  <insert id="insertLinker" parameterType="com.ps.result.presalemanage.LinkerVo">
+    insert into PMS_CONTACT
+    <selectKey  resultType="java.lang.String" order="BEFORE" keyProperty="id">
+          SELECT PMS_CONTACT_TB_SEQ.NEXTVAL as id FROM  DUAL
+    </selectKey>
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+	    ID,
+	    EMAIL,
+	    QQ_CARD,
+	    REMARK,	    
+	    CUSTOMER_ID,
+	    CONTACT_NAME,
+	    MOBILE_PHONE,
+	    POSITION_DESCRIBE,
+	    FIXED_PHONE,
+	    UPDATE_BY,
+	    UPDATE_DATE,
+	    create_by,
+	    create_date,
+	    status
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       #{id,jdbcType=NVARCHAR},
+       #{email,jdbcType=VARCHAR },
+       #{qqCard,jdbcType=VARCHAR },
+       #{remark,jdbcType=VARCHAR },       
+       #{customerId,jdbcType=VARCHAR },
+       #{contactName,jdbcType=VARCHAR },
+       #{mobilePhone,jdbcType=VARCHAR },
+       #{positionDescribe,jdbcType=VARCHAR },
+       #{fixedPhone,jdbcType=VARCHAR },
+       #{updateBy,jdbcType=VARCHAR },
+       sysdate,
+       #{createBy,jdbcType=VARCHAR },
+       sysdate,
+       0
+    </trim>
+  </insert>
+  
+  <!-- 修改信息 -->
+  <update id="updateLinker" parameterType="com.ps.result.presalemanage.LinkerVo" >
+    update PMS_CONTACT
+    <set>		
+   		UPDATE_BY =  #{updateBy,jdbcType=VARCHAR },
+   		UPDATE_DATE =  sysdate,
+   		EMAIL =  #{email,jdbcType=VARCHAR },
+   		QQ_CARD =  #{qqCard,jdbcType=VARCHAR },
+   		REMARK =  #{remark,jdbcType=VARCHAR },
+   		CONTACT_NAME =  #{contactName,jdbcType=VARCHAR },
+   		MOBILE_PHONE =  #{mobilePhone,jdbcType=VARCHAR },
+   		POSITION_DESCRIBE =  #{positionDescribe,jdbcType=VARCHAR },
+   		FIXED_PHONE =  #{fixedPhone,jdbcType=VARCHAR },		
+    </set>
+    where ID = #{id,jdbcType=DECIMAL}
+  </update> 
+  <!-- 根据ID删除信息 -->
+  <delete id="deleteLinkerById" parameterType="java.lang.String" >
+    update PMS_CONTACT set status=1
+    where ID =  #{linkerId,jdbcType=DECIMAL }
+  </delete>
+  
+  <delete id="deleteLinkerByIdPhysical" parameterType="java.lang.String">
+  	delete from  PMS_CONTACT 
+    where ID =  #{linkerId,jdbcType=DECIMAL }
+  </delete>
+  
+  <!-- 根据客户id删除信息 -->
+  <delete id="deleteLinkerByCustomerId" parameterType="java.lang.String" >
+    delete from  PMS_CONTACT 
+    where CUSTOMER_ID =  #{customerId,jdbcType=DECIMAL }
+  </delete>
+  
+  <!-- 获取全部客户联系人信息 -->
+  <select id="getCustomLinker" parameterType="java.lang.String"  resultMap="LinkerResultMap">
+  	select
+     <include refid="Linker_Column_List" />
+    from PMS_CONTACT
+    where 1=1
+    <if test="customId !=null and customId !=''">
+        and customer_id= #{customId,jdbcType=DECIMAL}
+    </if>
+    
+  </select>
+  
+  <!-- 根据客户联系电话获取信息 -->
+  <select id="queryPhoneByAccount" resultMap="LinkerResultMap">
+  	select 
+	   <include refid="Linker_Column_List" />
+	from PMS_CONTACT t
+    where 1 = 1
+	AND LOWER(T.MOBILE_PHONE)=LOWER(#{mobilePhone,jdbcType=VARCHAR})
+  </select>
+  
+  <!-- 根据id查询客户联系人信息 -->
+  <select id="queryPhoneById"  resultMap="LinkerResultMap">
+  	select 
+    <include refid="Linker_Column_List" />
+    from PMS_CONTACT
+    where ID =  #{id,jdbcType=DECIMAL }
+  </select>
+  
+</mapper>

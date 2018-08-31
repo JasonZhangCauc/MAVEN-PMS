@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.contractmanage.ContractExecuInfoDao" >
+  <!-- 合同执行情况映射类 -->
+  <resultMap id="ContractResultMap" type="com.ps.result.contractmanage.ContractVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="CREATE_DEPT" property="createDept" jdbcType="VARCHAR" />
+    <result column="LABOR_PRICE" property="laborPrice" jdbcType="VARCHAR" />
+    <result column="FREESERVICE_PERIOD" property="freeservicePeriod" jdbcType="VARCHAR" />
+    <result column="COSTSERVICE_TIME" property="costserviceTime" jdbcType="VARCHAR" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="CONTRACT_NO" property="contractNo" jdbcType="VARCHAR" />
+    <result column="SIGNED_DATE" property="signedDate" jdbcType="VARCHAR" />
+    <result column="BELONG_CUSTOMERID" property="belongCustomerid" jdbcType="VARCHAR" />
+    <result column="CUSTOM_NAME" property="customName" jdbcType="VARCHAR" />  
+    <result column="BELONG_PRODUCT" property="belongProduct" jdbcType="VARCHAR" />
+    <result column="CONTRACT_TITLE" property="contractTitle" jdbcType="VARCHAR" />
+    <result column="CONTRACT_AMOUNT" property="contractAmount" jdbcType="VARCHAR" />
+    <result column="CURRENCY" property="currency" jdbcType="VARCHAR" />
+    <result column="EFFECTIVE_DATE" property="effectiveDate" jdbcType="VARCHAR" />
+    <result column="FREE_LIMIT" property="freeLimit" jdbcType="VARCHAR" />
+    <result column="GIVE_DAY" property="giveDay" jdbcType="VARCHAR" />
+    <result column="PAYMENT_REMARK" property="paymentRemark" jdbcType="VARCHAR" />
+    <result column="REMARK" property="remark" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="CONTRACT_STATUS" property="contractStatus" jdbcType="VARCHAR" />
+    <result column="STATUS" property="status" jdbcType="VARCHAR" />
+    <result column="RECEIVED_MONEY" property="receivedMoney" jdbcType="VARCHAR" />
+    <result column="REST_SENDDAYS" property="restSenddays" jdbcType="VARCHAR" />
+    <result column="REST_EFFECTIVEDAYS" property="restEffectivedays" jdbcType="VARCHAR" />   
+  </resultMap>
+  <!--查询合同执行情况 所有的表字段-->
+  <sql id="Contract_Column_List" >
+    CREATE_DEPT,
+    LABOR_PRICE,
+    FREESERVICE_PERIOD,
+    COSTSERVICE_TIME,
+    UPDATE_DATE,
+    UPDATE_BY,
+    ID,
+    CONTRACT_NO,
+    SIGNED_DATE,
+    BELONG_CUSTOMERID,
+    CUSTOM_NAME,
+    BELONG_PRODUCT,
+    CONTRACT_TITLE,
+    CONTRACT_AMOUNT,
+    CURRENCY,
+    EFFECTIVE_DATE,
+    FREE_LIMIT,
+    GIVE_DAY,
+    PAYMENT_REMARK,
+    REMARK,
+    CREATE_BY,
+    CREATE_DATE,
+    CONTRACT_STATUS,
+    ECEIVED_MONEY,
+    REST_SENDDAYS,
+    REST_EFFECTIVEDAYS 
+  </sql>
+   
+  <!-- 合同跟踪表映射类 -->
+  <resultMap id="ContractTrackResultMap" type="com.ps.result.contractmanage.ContractExecuInfoVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="CONTRACT_ID" property="contractId" jdbcType="VARCHAR" />
+    <result column="PROJECT_STAGE" property="projectStage" jdbcType="VARCHAR" />
+    <result column="PERSONDAY_COUNTS" property="persondayCounts" jdbcType="VARCHAR" />
+    <result column="REMARK" property="remark" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="UPDATE_BY" property="updateBy" jdbcType="VARCHAR" />
+    <result column="UPDATE_DATE" property="updateDate" jdbcType="VARCHAR" />
+     <result column="STATUS" property="status" jdbcType="VARCHAR" />
+  </resultMap>
+  <!--查询合同跟踪所有的表字段-->
+  <sql id="Contract_Track_Column_List" >
+    ID,
+    CONTRACT_ID,
+    PROJECT_STAGE,
+    PERSONDAY_COUNTS,
+    REMARK,
+    to_char(CREATE_DATE,'yyyy-mm-dd') createDate,
+    UPDATE_BY,
+    UPDATE_DATE,
+    STATUS
+  </sql>
+  
+  
+  <!-- 根据参数查询合同执行情况信息 -->
+  <select id="queryContractExecuInfoByParam" resultMap="ContractResultMap" parameterType="com.ps.result.contractmanage.ContractVo" >
+      SELECT A.CREATE_DEPT,
+			 A.LABOR_PRICE,
+			 A.FREESERVICE_PERIOD,
+			 A.COSTSERVICE_TIME,
+			 TO_CHAR(A.UPDATE_DATE, 'yyyy-mm-dd') UPDATE_DATE,
+			 A.UPDATE_BY,
+			 A.ID,
+			 A.CONTRACT_NO,
+			 TO_CHAR(A.SIGNED_DATE, 'yyyy-mm-dd') SIGNED_DATE,
+			 A.BELONG_CUSTOMERID BELONGCUSTOMERID,
+			 (SELECT CUSTOM_SHORT_NAME
+					FROM PMS_CUSTOMER
+				 WHERE ID = A.BELONG_CUSTOMERID) CUSTOM_NAME,
+			 A.BELONG_PRODUCT,
+			 A.CONTRACT_TITLE,
+			 A.CONTRACT_AMOUNT,
+			 A.CURRENCY,
+			 TO_CHAR(A.EFFECTIVE_DATE, 'yyyy-mm-dd') EFFECTIVE_DATE,
+			 A.FREE_LIMIT,
+			 A.GIVE_DAY,
+			 A.PAYMENT_REMARK,
+			 A.REMARK,
+			 A.CREATE_BY,
+			 TO_CHAR(A.CREATE_DATE, 'yyyy-mm-dd') CREATE_DATE,
+			 A.CONTRACT_STATUS,
+			 (SELECT SUM(RECEIVABLE_AMOUNT)
+					FROM PMS_RECEIVABLES
+				 WHERE CONTRACT_ID = A.ID) RECEIVED_MONEY,
+			 (SELECT GREATEST(A.GIVE_DAY -
+				(SELECT SUM(PERSONDAY_COUNTS)
+					 FROM PMS_CONTRACT_TRACK
+					WHERE CONTRACT_ID = A.ID),0)				
+				FROM DUAL) REST_SENDDAYS,				
+		 (CASE
+         WHEN T3.MILEPOSTID IS NULL THEN
+          A.COSTSERVICE_TIME *30
+          WHEN T3.ADJUSTNUM = 0 THEN
+          ADD_MONTHS(SYSDATE,A.COSTSERVICE_TIME) - (SELECT T5.PLAN_COMPLETEDATE
+                 FROM PMS_MILEPOST T5
+                 WHERE T5.ID = T3.MILEPOSTID)
+         ELSE
+           ADD_MONTHS(SYSDATE,A.COSTSERVICE_TIME) - (SELECT MAX(T6.ADJUST_DATE)
+                  FROM PMS_MILEPOST_ADJUST T6
+                   WHERE T6.MILEPOST_ID = T3.MILEPOSTID)
+       END) REST_EFFECTIVEDAYS					
+	 FROM PMS_CONTRACT A
+	 LEFT JOIN PMS_PROJECT  T1
+     ON A.ID = T1.CONTRACT_ID	
+     LEFT JOIN (SELECT T2.PROJECT_ID,
+                       T2.CORRESPONDING_PHASE,
+                       T2.ID MILEPOSTID,
+                       (SELECT COUNT(*)
+                       FROM PMS_MILEPOST_ADJUST T4
+                       WHERE T4.MILEPOST_ID = T2.ID) ADJUSTNUM
+                 FROM PMS_MILEPOST T2
+                WHERE T2.MILEPOST_STATUS = '2') T3
+     ON T1.ID = T3.PROJECT_ID
+     AND A.FREESERVICE_PERIOD = T3.CORRESPONDING_PHASE
+    WHERE a.STATUS = 0
+        and A.CONTRACT_STATUS=5
+    <if test="contractTitle !=null and contractTitle !=''">
+        and a.CONTRACT_TITLE like '%'||#{contractTitle}|| '%'
+    </if>
+    <if test="contractNo !=null and contractNo !=''">
+        and a.CONTRACT_NO like '%'||#{contractNo}|| '%'
+    </if>
+     <if test="belongCustomerid !=null and belongCustomerid !=''">
+        and a.BELONG_CUSTOMERID in (${belongCustomerid})
+    </if>
+    <if test="belongProduct !=null and belongProduct !=''">
+        and a.BELONG_PRODUCT in (${belongProduct})
+    </if>
+    <if test="contractStatus !=null and contractStatus !=''">
+        and a.CONTRACT_STATUS in (${contractStatus})
+    </if>
+    <if test="signStartDate !=null and signStartDate !=''">
+       AND a.SIGNED_DATE>=to_date(#{signStartDate},'yyyy/mm/dd hh24:mi:ss') 
+    </if>
+    <if test="signEndDate !=null and signEndDate !=''">
+        AND to_date(#{signEndDate},'yyyy/mm/dd hh24:mi:ss') >=a.SIGNED_DATE
+    </if>
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by CREATE_DATE DESC
+		</otherwise>
+	 </choose>     
+  </select>
+  
+  <!-- 根据ID查询查询合同执行情况信息 -->
+  <select id="queryContractExecuInfoById" resultMap="ContractResultMap" parameterType="java.lang.String" >
+      SELECT A.CREATE_DEPT,
+			 A.LABOR_PRICE,
+			 A.FREESERVICE_PERIOD,
+			 A.COSTSERVICE_TIME,
+			 TO_CHAR(A.UPDATE_DATE, 'yyyy-mm-dd') UPDATE_DATE,
+			 A.UPDATE_BY,
+			 A.ID,
+			 A.CONTRACT_NO,
+			 TO_CHAR(A.SIGNED_DATE, 'yyyy-mm-dd') SIGNED_DATE,
+			 A.BELONG_CUSTOMERID BELONGCUSTOMERID,
+			 (SELECT CUSTOM_SHORT_NAME
+					FROM PMS_CUSTOMER
+				 WHERE ID = A.BELONG_CUSTOMERID) CUSTOM_NAME,
+			 A.BELONG_PRODUCT,
+			 A.CONTRACT_TITLE,
+			 A.CONTRACT_AMOUNT,
+			 A.CURRENCY,
+			 TO_CHAR(A.EFFECTIVE_DATE, 'yyyy-mm-dd') EFFECTIVE_DATE,
+			 A.FREE_LIMIT,
+			 A.GIVE_DAY,
+			 A.PAYMENT_REMARK,
+			 A.REMARK,
+			 A.CREATE_BY,
+			 TO_CHAR(A.CREATE_DATE, 'yyyy-mm-dd') CREATE_DATE,
+			 A.CONTRACT_STATUS,
+			 (SELECT SUM(RECEIVABLE_AMOUNT)
+					FROM PMS_RECEIVABLES
+				 WHERE CONTRACT_ID = A.ID) RECEIVED_MONEY,
+			 (SELECT GREATEST(A.GIVE_DAY -
+				(SELECT SUM(PERSONDAY_COUNTS)
+					 FROM PMS_CONTRACT_TRACK
+					WHERE CONTRACT_ID = A.ID),0)				
+				FROM DUAL) REST_SENDDAYS,				
+		 (CASE
+         WHEN T3.MILEPOSTID IS NULL THEN
+          A.COSTSERVICE_TIME *30
+          WHEN T3.ADJUSTNUM = 0 THEN
+          ADD_MONTHS(SYSDATE,A.COSTSERVICE_TIME) - (SELECT T5.PLAN_COMPLETEDATE
+                 FROM PMS_MILEPOST T5
+                 WHERE T5.ID = T3.MILEPOSTID)
+         ELSE
+           ADD_MONTHS(SYSDATE,A.COSTSERVICE_TIME) - (SELECT MAX(T6.ADJUST_DATE)
+                  FROM PMS_MILEPOST_ADJUST T6
+                   WHERE T6.MILEPOST_ID = T3.MILEPOSTID)
+       END) REST_EFFECTIVEDAYS					
+	 FROM PMS_CONTRACT A
+	 LEFT JOIN PMS_PROJECT  T1
+     ON A.ID = T1.CONTRACT_ID	
+     LEFT JOIN (SELECT T2.PROJECT_ID,
+                       T2.CORRESPONDING_PHASE,
+                       T2.ID MILEPOSTID,
+                       (SELECT COUNT(*)
+                       FROM PMS_MILEPOST_ADJUST T4
+                       WHERE T4.MILEPOST_ID = T2.ID) ADJUSTNUM
+                 FROM PMS_MILEPOST T2
+                WHERE T2.MILEPOST_STATUS = '2') T3
+     ON T1.ID = T3.PROJECT_ID
+     AND A.FREESERVICE_PERIOD = T3.CORRESPONDING_PHASE
+    where a.ID =  #{contractId,jdbcType=DECIMAL}
+  </select>
+  <!-- 根据参数查询合同跟踪信息 -->
+  <select id="queryContractTrackInfoByParam" resultMap="ContractTrackResultMap" parameterType="com.ps.result.contractmanage.ContractExecuInfoVo" >
+    select
+    (SELECT user_name FROM  PMS_USER WHERE ID=b.CREATE_BY) createBy,
+    <include refid="Contract_Track_Column_List" />
+    from PMS_CONTRACT_TRACK b
+    where status=0
+    and CONTRACT_ID= #{contractId,jdbcType=DECIMAL }
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by CREATE_DATE DESC
+		</otherwise>
+	 </choose>  
+  </select>
+  
+  <!-- 根据ID查询合同跟踪信息 -->
+  <select id="queryContractTrackById" resultMap="ContractTrackResultMap" parameterType="java.lang.String" >
+    select
+     (SELECT user_name FROM  PMS_USER WHERE ID=b.CREATE_BY) createBy, 
+    <include refid="Contract_Track_Column_List" />
+    from PMS_CONTRACT_TRACK b
+    where ID =  #{id,jdbcType=DECIMAL }
+  </select>
+  
+  <!-- 新增合同跟踪信息 -->
+  <insert id="insertContractTrack" parameterType="com.ps.result.contractmanage.ContractExecuInfoVo" >
+    insert into PMS_CONTRACT_TRACK
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+	    ID,
+	    CONTRACT_ID,
+	    PROJECT_STAGE,
+	    PERSONDAY_COUNTS,
+	    REMARK,
+	    CREATE_BY,
+	    CREATE_DATE,
+	    UPDATE_BY,
+	    UPDATE_DATE,
+	    STATUS
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       PMS_CONTRACT_TRACK_SEQ.NEXTVAL,
+       #{contractId,jdbcType=VARCHAR },
+       #{projectStage,jdbcType=VARCHAR },
+       #{persondayCounts,jdbcType=VARCHAR },
+       #{remark,jdbcType=VARCHAR },
+       #{createBy,jdbcType=VARCHAR },
+       sysdate,
+       #{updateBy,jdbcType=VARCHAR },
+       sysdate,
+       0
+    </trim>
+  </insert>
+  
+  <!-- 修改合同跟踪信息 -->
+  <update id="updateContractTrack" parameterType="com.ps.result.contractmanage.ContractExecuInfoVo" >
+    update PMS_CONTRACT_TRACK
+    <set >
+   		CONTRACT_ID =  #{contractId,jdbcType=VARCHAR },
+
+   		PROJECT_STAGE =  #{projectStage,jdbcType=VARCHAR },
+
+   		PERSONDAY_COUNTS =  #{persondayCounts,jdbcType=VARCHAR },
+
+   		REMARK =  #{remark,jdbcType=VARCHAR },
+
+   		UPDATE_BY =  #{updateBy,jdbcType=VARCHAR },
+
+   		UPDATE_DATE =  sysdate
+    </set>
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 根据ID删除合同跟踪信息 -->
+  <delete id="deleteContractTrackById" parameterType="java.lang.String" >
+   update PMS_CONTRACT_TRACK set status=1
+   where ID =  #{id,jdbcType=DECIMAL }
+  </delete>
+</mapper>

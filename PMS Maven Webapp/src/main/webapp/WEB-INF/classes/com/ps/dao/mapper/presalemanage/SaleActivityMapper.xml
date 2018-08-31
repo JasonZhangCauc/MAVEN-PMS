@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.presalemanage.SalesActivityDao" >
+  <!-- 销售活动映射列表 -->
+  <resultMap id="ActivityResultMap" type="com.ps.result.presalemanage.SalesActivityVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="UPDATE_BY" property="updateBy" jdbcType="VARCHAR" />
+    <result column="UPDATE_DATE" property="updateDate" jdbcType="VARCHAR" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="SALESPROJECT_ID" property="salesprojectId" jdbcType="VARCHAR" />
+    <result column="ACTIVITY_BEGINDATE" property="activityBegindate" jdbcType="VARCHAR" />
+    <result column="ACTIVITY_ENDDATE" property="activityEnddate" jdbcType="VARCHAR" />
+    <result column="ACTIVITY_NAME" property="activityName" jdbcType="VARCHAR" />
+    <result column="ACTIVITY_TYPE" property="activityType" jdbcType="VARCHAR" />
+    <result column="SALES_PERSONNEL_ID" property="salesPersonnelId" jdbcType="VARCHAR" />
+    <result column="SALES_PERSONNEL_NAMES" property="salesPersonnelNames" jdbcType="VARCHAR" />
+    <result column="CUSTOMER_BEHALF" property="customerBehalf" jdbcType="VARCHAR" />
+    <result column="ACTIVITY_DESCRIBE" property="activityDescribe" jdbcType="VARCHAR" />
+    <result column="ACTIVITY_RESULTS" property="activityResults" jdbcType="VARCHAR" />
+    <result column="REMARK" property="remark" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="STATUS" property="status" jdbcType="VARCHAR" />
+    <result column="activityType" property="activityTypeStr" jdbcType="VARCHAR" />
+    <result column="USER_PIC" property="userPic" jdbcType="VARCHAR" />
+  </resultMap>
+  <!--查询销售活动所有的表字段-->
+  <sql id="Activity_Column_List" >
+    UPDATE_BY,
+    to_char(UPDATE_DATE,'yyyy-mm-dd'),
+    ID,
+    SALESPROJECT_ID,
+    to_char(ACTIVITY_BEGINDATE,'yyyy-mm-dd') activityBegindate,
+    to_char(ACTIVITY_ENDDATE,'yyyy-mm-dd') activityEnddate,
+    ACTIVITY_NAME,
+    ACTIVITY_TYPE,
+    SALES_PERSONNEL_ID,
+    (SELECT to_char(WM_CONCAT(T1.USER_NAME))
+          FROM PMS_USER T1
+      WHERE ','||t2.SALES_PERSONNEL_ID||',' LIKE '%,'||ID||',%' )SALES_PERSONNEL_NAMES,
+    CUSTOMER_BEHALF,
+    ACTIVITY_DESCRIBE,
+    ACTIVITY_RESULTS,
+    REMARK,
+    CREATE_BY,
+    to_char(CREATE_DATE,'yyyy-mm-dd hh24:mi') CREATE_DATE
+  </sql>
+   
+  <!-- 根据参数查询销售活动信息 -->
+  <select id="querySalesActivityByParam" resultMap="ActivityResultMap" parameterType="com.ps.result.presalemanage.SalesActivityVo" >
+    select     
+    t2.UPDATE_BY,
+    to_char(t2.UPDATE_DATE,'yyyy-mm-dd'),
+    t2.ID,
+    t2.SALESPROJECT_ID,
+    to_char(t2.ACTIVITY_BEGINDATE,'yyyy-mm-dd') activityBegindate,
+    to_char(t2.ACTIVITY_ENDDATE,'yyyy-mm-dd') activityEnddate,
+    t2.ACTIVITY_NAME,
+    t2.ACTIVITY_TYPE,
+    t2.SALES_PERSONNEL_ID,
+    (SELECT to_char(WM_CONCAT(T1.USER_NAME))
+          FROM PMS_USER T1
+      WHERE ','||t2.SALES_PERSONNEL_ID||',' LIKE '%,'||ID||',%' )SALES_PERSONNEL_NAMES,
+    t2.CUSTOMER_BEHALF,
+    t2.ACTIVITY_DESCRIBE,
+    t2.ACTIVITY_RESULTS,
+    t2.REMARK,
+    t2.CREATE_BY,
+    to_char(t2.CREATE_DATE,'yyyy-mm-dd hh24:mi') CREATE_DATE,T3.USER_PIC,
+    T7.CODE_ZH activityType
+    from PMS_SALESACTIVITY t2 
+    LEFT JOIN PMS_CODE T7
+    ON t2.ACTIVITY_TYPE = T7.CODE_VALUE
+    AND T7.CODE_TYPE = 'activityType'
+    left join PMS_USER T3 on t2.CREATE_BY = T3.id
+    where t2.status=0
+    and SALESPROJECT_ID= (#{salesprojectId,jdbcType=DECIMAL})
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by Create_date DESC
+		</otherwise>
+	</choose>
+  </select>
+  
+  <!-- 根据ID查询销售活动信息 -->
+  <select id="querySalesActivityById" resultMap="ActivityResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Activity_Column_List" />
+    from PMS_SALESACTIVITY T2
+    where T2.ID =  #{id,jdbcType=DECIMAL }
+    and  T2.status=0
+  </select>
+  
+  <!-- 新增销售活动信息 -->
+  <insert id="insertSalesActivity" parameterType="com.ps.result.presalemanage.SalesActivityVo" >
+    insert into PMS_SALESACTIVITY
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+	    ID,	   	    
+	    SALESPROJECT_ID,
+	    ACTIVITY_BEGINDATE,
+	    ACTIVITY_ENDDATE,
+	    ACTIVITY_NAME,
+	    ACTIVITY_TYPE,
+	    SALES_PERSONNEL_ID,
+	    CUSTOMER_BEHALF,
+	    ACTIVITY_DESCRIBE,
+	    ACTIVITY_RESULTS,
+	    REMARK,
+	    UPDATE_BY,
+	    UPDATE_DATE,
+	    CREATE_BY,
+	    CREATE_DATE,
+	    STATUS
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       PMS_SALESACTIVITY_TB_SEQ.NEXTVAL,      
+       #{salesprojectId,jdbcType=VARCHAR },
+       to_date(#{activityBegindate,jdbcType=VARCHAR },'yyyy-mm-dd'),
+       to_date(#{activityEnddate,jdbcType=VARCHAR },'yyyy-mm-dd'),
+       #{activityName,jdbcType=VARCHAR },
+       #{activityType,jdbcType=VARCHAR },
+       #{salesPersonnelId,jdbcType=VARCHAR },     
+       #{customerBehalf,jdbcType=VARCHAR },
+       #{activityDescribe,jdbcType=VARCHAR },
+       #{activityResults,jdbcType=VARCHAR },
+       #{remark,jdbcType=VARCHAR },
+       #{updateBy,jdbcType=VARCHAR },
+       sysdate,
+       #{createBy,jdbcType=VARCHAR },
+       sysdate,
+       0
+    </trim>
+  </insert>
+  
+  <!-- 修改销售活动信息 -->
+  <update id="updateSalesActivity" parameterType="com.ps.result.presalemanage.SalesActivityVo" >
+    update PMS_SALESACTIVITY
+    <set >	
+   		UPDATE_BY =  #{updateBy,jdbcType=VARCHAR },
+
+   		ACTIVITY_BEGINDATE =  to_date(#{activityBegindate,jdbcType=VARCHAR },'yyyy-mm-dd'),
+
+   		ACTIVITY_ENDDATE =  to_date(#{activityEnddate,jdbcType=VARCHAR },'yyyy-mm-dd'),
+
+   		ACTIVITY_NAME =  #{activityName,jdbcType=VARCHAR },
+
+   		ACTIVITY_TYPE =  #{activityType,jdbcType=VARCHAR },
+
+   		SALES_PERSONNEL_ID =  #{salesPersonnelId,jdbcType=VARCHAR },
+
+   		CUSTOMER_BEHALF =  #{customerBehalf,jdbcType=VARCHAR },
+   		
+   		ACTIVITY_DESCRIBE =  #{activityDescribe,jdbcType=VARCHAR },
+   		
+   		ACTIVITY_RESULTS =  #{activityResults,jdbcType=VARCHAR },
+   				
+   		REMARK =  #{remark,jdbcType=VARCHAR },
+   		
+	    UPDATE_DATE =  sysdate			
+    </set>
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 根据ID删除销售活动信息 -->
+  <delete id="deleteSalesActivityById" parameterType="java.lang.String" >
+    update PMS_SALESACTIVITY set status=1
+    where ID =  #{id,jdbcType=DECIMAL }
+  </delete>
+</mapper>

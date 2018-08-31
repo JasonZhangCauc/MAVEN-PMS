@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.applymanage.TaxiBillManagerDao">
+
+	<!-- 打车报销表映射实体类 -->
+	<resultMap id="TaxiBillMap" type="com.ps.result.applymanage.TaxiBillVo">
+		<id column="ID" property="id" jdbcType="DECIMAL" />
+		<result column="DEPART_TIME" property="departTime" jdbcType="VARCHAR" />
+		<result column="ARRIVE_TIME" property="arriveTime" jdbcType="VARCHAR" />
+		<result column="TAXI_MATTER" property="taxiMatter" jdbcType="VARCHAR" />
+		<result column="TAXI_AMOUNT" property="taxiAmount" jdbcType="VARCHAR" />
+		<result column="TAXIBILL_STATUS" property="taxibillStatus"
+			jdbcType="VARCHAR" />
+		<result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+		<result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+		<result column="ID" property="id" jdbcType="VARCHAR" />
+		<result column="REIMBURSE_DATE" property="reimburseDate"
+			jdbcType="VARCHAR" />
+		<result column="REIMBURSE_BY" property="reimburseBy" jdbcType="VARCHAR" />
+		<result column="PROJECT_ID" property="projectId" jdbcType="VARCHAR" />
+		<result column="PROJECT_NAME" property="projectName" jdbcType="VARCHAR" />
+		<result column="REIMBURSE_NAME" property="reimburseName"
+			jdbcType="VARCHAR" />
+	</resultMap>
+
+	<!--根据条件查询打车报销信息 -->
+	<select id="getAllTaxiBill" resultMap="TaxiBillMap"
+		parameterType="com.ps.result.applymanage.TaxiBillVo">
+		SELECT * from (
+		SELECT t1.ID,
+		to_char(t1.REIMBURSE_DATE,'yyyy-mm-dd') REIMBURSE_DATE,
+		t1.REIMBURSE_BY,
+		t1.PROJECT_ID,
+		t1.DEPART_TIME,
+		t1.ARRIVE_TIME,
+		t1.TAXI_MATTER,
+		t1.TAXI_AMOUNT,
+		t1.TAXIBILL_STATUS,
+		t1.CREATE_BY,
+		to_char(t1.CREATE_DATE,'YYYY-MM-DD') CREATE_DATE,
+		t2.project_name PROJECT_NAME,
+		t1.REIMBURSE_DATE reimBurseDate,
+		t3.user_name REIMBURSE_NAME
+		FROM
+		PMS_TAXIBILL t1
+		left join pms_project_baseInfo t2
+		on t1.project_id=t2.id
+		left join pms_user t3 on t1.REIMBURSE_BY =t3.id
+		)m
+		where 1=1
+		<if test="projectId !=null and projectId !=''">
+			and m.PROJECT_ID = #{projectId,jdbcType=VARCHAR}
+		</if>
+		<if test="reimburseName !=null and reimburseName !=''">
+			and m.REIMBURSE_NAME like '%'|| #{reimburseName}||'%'
+				or m.REIMBURSE_BY like '%'|| #{reimburseName}||'%'
+		</if>
+		<if test="reimburseDate !=null and reimburseDate !=''">
+			and m.reimBurseDate =
+			to_date(#{reimburseDate,jdbcType=VARCHAR},'yyyy-mm-dd')
+		</if>
+		<if test="taxiAmount !=null and taxiAmount !=''">
+			and m.TAXI_AMOUNT like '%'|| #{taxiAmount}||'%' 
+		</if>
+		<if test="taxibillStatus !=null and taxibillStatus !=''">
+			and m.TAXIBILL_STATUS = #{taxibillStatus,jdbcType=VARCHAR}
+		</if>
+		<!-- 无权限 -->
+		<if test="authority == 0">
+			and 1!=1
+		</if>
+		<!-- 查看个人 -->
+		<if test="authority == 1">
+			and m.CREATE_BY = #{authUserId,jdbcType=VARCHAR }
+		</if>
+		<!-- 查看项目 -->
+		<if test="authority == 2">
+			<if
+				test="authDeptId != null and authDeptId != '' and authDeptId != 'null' ">
+				AND (((
+				<foreach collection="authDeptId.split(',')" item="authDept"
+					index="index" open="" close="" separator="or">
+					(','||m.PROJECT_ID||',' like
+					'%,'||#{authDept,jdbcType=VARCHAR}||',%')
+				</foreach>
+				) and m.TAXIBILL_STATUS != 1) or (m.CREATE_BY =
+				#{authUserId,jdbcType=VARCHAR }) )
+			</if>
+			<if test="authDeptId == null or authDeptId == '' or authDeptId == 'null' ">
+				AND 1!=1
+			</if>
+		</if>
+
+		<!-- 查看部门 -->
+		<if test="authority == 3">
+			<if
+				test="authDeptId != null and authDeptId != '' and authDeptId != 'null' ">
+				AND (((
+				<foreach collection="authDeptId.split(',')" item="authDept"
+					index="index" open="" close="" separator="or">
+					(','||m.PROJECT_ID||',' like
+					'%,'||#{authDept,jdbcType=VARCHAR}||',%')
+				</foreach>
+				) and m.TAXIBILL_STATUS != 1 ) or (m.CREATE_BY =
+				#{authUserId,jdbcType=VARCHAR }) )
+			</if>
+			<if test="authDeptId == null or authDeptId == '' or authDeptId == 'null' ">
+				AND 1!=1
+			</if>
+		</if>
+		<!-- 查看全部 -->
+		<if test="authority == 4">
+			and (m.TAXIBILL_STATUS != 0 or m.CREATE_BY=#{authUserId,jdbcType=VARCHAR })
+		</if>
+		<choose>
+			<when test="orderByClause != null and orderByClause != ''">
+				order by ${orderByClause}
+			</when>
+			<otherwise>
+				order by m.CREATE_DATE DESC
+			</otherwise>
+		</choose>
+	</select>
+
+	<!-- 根据ID查询打车报销信息 -->
+	<select id="getTaxiBillById" resultMap="TaxiBillMap"
+		parameterType="java.lang.String">
+		select * from (
+		SELECT t1.ID,
+		to_char(t1.REIMBURSE_DATE,'yyyy-mm-dd') REIMBURSE_DATE,
+		t1.REIMBURSE_BY,
+		t1.PROJECT_ID,
+		t1.DEPART_TIME,
+		t1.ARRIVE_TIME,
+		t1.TAXI_MATTER,
+		t1.TAXI_AMOUNT,
+		t1.TAXIBILL_STATUS,
+		t1.CREATE_BY,
+		t1.CREATE_DATE,
+		t2.project_name PROJECT_NAME,
+		t1.REIMBURSE_DATE
+		reimBurseDate,
+		t3.user_name REIMBURSE_NAME
+		FROM PMS_TAXIBILL t1
+		left join
+		pms_project_baseInfo t2
+		on t1.project_id=t2.id
+		left join pms_user t3 on
+		t1.REIMBURSE_BY =t3.id
+		)m
+		where 1=1
+		and m.ID = #{id,jdbcType=VARCHAR }
+	</select>
+
+
+	<!--新增打车报销单信息 -->
+	<insert id="addTaxiBill" parameterType="com.ps.result.applymanage.TaxiBillVo">
+		<selectKey resultType="java.lang.String" order="BEFORE"
+			keyProperty="id">
+			SELECT PMS_TAXIBILL_TB_SEQ.NEXTVAL as id FROM DUAL
+		</selectKey>
+		insert into PMS_TAXIBILL
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			ID,
+			DEPART_TIME,
+			ARRIVE_TIME,
+			TAXI_MATTER,
+			TAXI_AMOUNT,
+			TAXIBILL_STATUS,
+			CREATE_BY,
+			CREATE_DATE,
+			REIMBURSE_DATE,
+			REIMBURSE_BY,
+			PROJECT_ID,
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			#{id,jdbcType=VARCHAR },
+			#{departTime,jdbcType=VARCHAR },
+			#{arriveTime,jdbcType=VARCHAR },
+			#{taxiMatter,jdbcType=VARCHAR },
+			#{taxiAmount,jdbcType=VARCHAR },
+			#{taxibillStatus,jdbcType=VARCHAR },
+			#{createBy,jdbcType=VARCHAR },
+			sysdate,
+			to_date(#{reimburseDate,jdbcType=VARCHAR },'yyyy-mm-dd'),
+			#{reimburseBy,jdbcType=VARCHAR },
+			#{projectId,jdbcType=VARCHAR },
+		</trim>
+	</insert>
+
+	<!--修改打车报销单 -->
+	<update id="updateTaxiBill" parameterType="com.ps.result.applymanage.TaxiBillVo">
+		update PMS_TAXIBILL
+		<set>
+			DEPART_TIME = #{departTime,jdbcType=VARCHAR },
+			ARRIVE_TIME =
+			#{arriveTime,jdbcType=VARCHAR },
+			TAXI_MATTER =
+			#{taxiMatter,jdbcType=VARCHAR },
+			TAXI_AMOUNT =
+			#{taxiAmount,jdbcType=VARCHAR },
+			REIMBURSE_DATE =
+			to_date(#{reimburseDate,jdbcType=VARCHAR },'yyyy-mm-dd'),
+			PROJECT_ID =
+			#{projectId,jdbcType=VARCHAR },
+		</set>
+		where ID = #{id,jdbcType=DECIMAL}
+	</update>
+
+	<!--删除打车报销单 -->
+	<delete id="deleteTaxiBill">
+		DELETE PMS_TAXIBILL WHERE ID=#{id,jdbcType=VARCHAR}
+	</delete>
+
+	<!--更新打车报销单 -->
+	<update id="updateTaxiBillStatus" parameterType="com.ps.result.applymanage.TaxiBillVo">
+		update PMS_TAXIBILL
+		<set>
+			TAXIBILL_STATUS = #{taxibillStatus,jdbcType=VARCHAR}
+		</set>
+		where ID = #{id,jdbcType=DECIMAL}
+	</update>
+</mapper>

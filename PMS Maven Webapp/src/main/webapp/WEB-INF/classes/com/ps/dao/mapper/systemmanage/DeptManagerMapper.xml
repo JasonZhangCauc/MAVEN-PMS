@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ps.dao.systemmanage.DeptManagerDao" >
+  <!-- 组织架构表实体映射类 -->
+  <resultMap id="DeptResultMap" type="com.ps.result.systemmanage.DeptVo" >
+    <id column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="DEPT_PID" property="deptPid" jdbcType="VARCHAR" />
+    <result column="DEPT_NAME" property="deptName" jdbcType="VARCHAR" />
+    <result column="DEPT_FLAG" property="deptFlag" jdbcType="VARCHAR" />
+    <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="VARCHAR" />
+    <result column="UPDATE_BY" property="updateBy" jdbcType="VARCHAR" />
+    <result column="UPDATE_DATE" property="updateDate" jdbcType="VARCHAR" />
+  </resultMap>
+  <!--查询字段 所有的表字段-->
+  <sql id="Dept_Column_List" >
+    ID,
+    DEPT_PID,
+    DEPT_NAME,
+    DEPT_FLAG,
+    CREATE_BY,
+    CREATE_DATE,
+    UPDATE_BY,
+    UPDATE_DATE
+  </sql>
+  
+  <!-- 根据参数查询列表信息 -->
+  <select id="queryDeptInfoByParam" resultMap="DeptResultMap" parameterType="com.ps.result.systemmanage.DeptVo" >
+    select
+    <include refid="Dept_Column_List" />
+    from PMS_DEPT
+    WHERE DEPT_FLAG=0
+    <if test="deptName != null and deptName != ''">
+    	AND DEPT_NAME like '%'||#{deptName,jdbcType=VARCHAR }||'%'
+    </if>
+    <choose>
+		<when test="orderByClause != null and orderByClause != ''">
+			order by ${orderByClause}
+		</when>
+		<otherwise>
+			order by CREATE_DATE
+		</otherwise>
+	</choose>
+  </select>
+  
+  <!-- 新增信息 -->
+  <insert id="insertDept" parameterType="com.ps.result.systemmanage.DeptVo" >
+    insert into PMS_DEPT
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+	    ID,
+	    DEPT_PID,
+	    DEPT_NAME,
+	    DEPT_FLAG,
+	    CREATE_BY,
+	    CREATE_DATE,
+	    UPDATE_BY,
+	    UPDATE_DATE,
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+       PMS_DEPT_TB_SEQ.nextval,
+       #{deptPid,jdbcType=VARCHAR },
+       #{deptName,jdbcType=VARCHAR },
+       0,
+       #{createBy,jdbcType=VARCHAR },
+       sysdate,
+       #{updateBy,jdbcType=VARCHAR },
+       sysdate
+    </trim>
+  </insert>
+  
+  <!-- 修改信息 -->
+  <update id="updateDept" parameterType="com.ps.result.systemmanage.DeptVo" >
+    update PMS_DEPT
+    set
+   		DEPT_NAME =  #{deptName,jdbcType=VARCHAR },
+   		UPDATE_BY =  #{updateBy,jdbcType=VARCHAR },
+   		UPDATE_DATE =  sysdate
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  
+  <!-- 根据ID修改组织架构状态-->
+  <update id="updateDeptFlagById" parameterType="java.lang.String" >
+    update PMS_DEPT set DEPT_FLAG=1
+    where ID =  #{id,jdbcType=DECIMAL }
+  </update>
+  
+  <!-- 根据参数查询列表信息 -->
+  <select id="initDeptData" resultMap="DeptResultMap">
+    select
+    <include refid="Dept_Column_List" />
+    from PMS_DEPT
+  </select>
+</mapper>
