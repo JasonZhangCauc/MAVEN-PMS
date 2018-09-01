@@ -1,11 +1,7 @@
 /*
  *  @Description：合同编辑/新增界面JS
-<<<<<<< HEAD
- *  @author：               raomingyi
-=======
  *  @author：               Jasonzhang
->>>>>>> branch 'master' of https://github.com/JasonZhangCauc/MAVEN-PMS.git
- *  @date：                    2018年3月7日
+ *  @date：                    2018年8月7日
  */
 ContractEdit={
 	initContractEdit:function () {
