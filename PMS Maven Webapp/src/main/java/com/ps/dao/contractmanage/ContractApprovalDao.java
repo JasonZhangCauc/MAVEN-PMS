@@ -8,14 +8,14 @@ import com.ps.result.contractmanage.ContractApprovalVo;
 
 /**
  * @Description:    合同审批DAO接口 
- * @author:         raomingyi
+ * @author:         Jasonzhang
  * @date:           2018-03-13
  */
 public interface ContractApprovalDao{
 	
 	/**
 	 * @Description: 根据参数查询合同信息
-	 * @author:      raomingyi
+	 * @author:      Jasonzhang
 	 * @param:       ContractApprovalVo
 	 * @return:      ContractApprovalVo 列表信息
 	 * @date:        2018-03-13
@@ -24,7 +24,7 @@ public interface ContractApprovalDao{
 	
 	/**
 	 * @Description: 根据ID查询合同信息
-	 * @author:      raomingyi
+	 * @author:      Jasonzhang
 	 * @param:       id
 	 * @return:      ContractApprovalVo 数据信息
 	 * @date:        2018-03-13
@@ -32,7 +32,7 @@ public interface ContractApprovalDao{
 	public ContractApprovalVo queryContractAppById(@Param("id")String id);
 	/**
 	 * @Description: 合同审批
-	 * @author:      raomingyi
+	 * @author:      Jasonzhang
 	 * @param:       ContractApprovalVo
 	 * @date:        2018-03-13
 	 */
