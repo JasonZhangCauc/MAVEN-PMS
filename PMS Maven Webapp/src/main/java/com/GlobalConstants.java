@@ -38,6 +38,10 @@ public class GlobalConstants {
 	
 	public static final String EIGHT="8";
 	
+	public static final String NINE="9";
+	
+	public static final String TEN="10";
+	
 	public static final String sysName="PMS"; 
 	
 	public static final String TARGET="navtab"; 
@@ -102,6 +106,29 @@ public class GlobalConstants {
 	
 	public static final String COMPLETE="已完成";
 	
+	public static final String PROJECTSTART="项目启动";//项目启动
+	
+	public static final String PROJECTPLANNING="项目规划";//项目规划
+	
+	public static final String CONCEPTOFTRAINING="概念培训";//概念培训
+	
+	public static final String DEMANDRESEARCH="需求调研";//需求调研
+
+	public static final String SYSTEMIMPLEMENTATION="系统实施";//系统实施
+	
+	public static final String LAUNCHPHASE="上线阶段";//上线阶段
+	
+	public static final String THEACCEPTANCESTAGE="验收阶段";//验收阶段
+	
+	public static final String OPERATIONSSUPPORT="运维支持";//运维支持
+	
+	public static final String PROJECTMOI="项目监控";//项目监控
+
+	public static final String PROJECTPLAN="项目计划";//项目计划
+	
+	public static final String RISKMANAGEMENT="风险管理";//风险管理
+	
+	public static final String SIGNATURESCAN="签字扫描件";//签字扫描件
 	
 	/*操作日志部分*/
 	//是否为子表
@@ -123,7 +150,8 @@ public class GlobalConstants {
 	public static final String ROLE_CODE="RE100";				//角色标识码
 	/**工作台 **/
 	public static final String CATEGORYTYPE_R00101 = "R001_01" , CATEGORY_R00101 = "工作单";	
-	public static final String CATEGORYTYPE_R00102 = "R001_02" , CATEGORY_R00102 = "投诉与建议";	 
+	public static final String CATEGORYTYPE_R00102 = "R001_02" , CATEGORY_R00102 = "投诉与建议";
+	public static final String CATEGORYTYPE_R00103 = "R001_03" , CATEGORY_R00103 = "满意度调查";
 	/**售前管理 **/
 	public static final String CATEGORYTYPE_R00201 = "R002_01" , CATEGORY_R00201 = "客户维护";	 
 	public static final String CATEGORYTYPE_R00202 = "R002_02" , CATEGORY_R00202 = "销售跟踪";	 
@@ -139,7 +167,9 @@ public class GlobalConstants {
 	public static final String CATEGORYTYPE_R00404 = "R004_04" , CATEGORY_R00404 = "跟踪表";	
 	public static final String CATEGORYTYPE_R00405 = "R004_05" , CATEGORY_R00405 = "报告管理";	 
 	public static final String CATEGORYTYPE_R00406 = "R004_06" , CATEGORY_R00406 = "资源管理";	
-	public static final String CATEGORYTYPE_R00407 = "R004_07" , CATEGORY_R00407 = "项目维护";	
+	public static final String CATEGORYTYPE_R00407 = "R004_07" , CATEGORY_R00407 = "项目维护";
+	public static final String CATEGORYTYPE_R00409 = "R004_09" , CATEGORY_R00409 = "主机清单";
+	public static final String CATEGORYTYPE_R00408 = "R004_08" , CATEGORY_R00408 = "资产管理";	
 	/**质量管理 **/
 	public static final String CATEGORYTYPE_R00501 = "R005_01" , CATEGORY_R00501 = "质量控制";	 
 	public static final String CATEGORYTYPE_R00502 = "R005_02" , CATEGORY_R00502 = "文档管理";	 
@@ -149,7 +179,7 @@ public class GlobalConstants {
 	public static final String CATEGORYTYPE_R00602 = "R006_02" , CATEGORY_R00602 = "培训计划";	 
 	public static final String CATEGORYTYPE_R00603 = "R006_03" , CATEGORY_R00603 = "晋级管理";
 	public static final String CATEGORYTYPE_R00604 = "R006_04" , CATEGORY_R00604 = "新员工入职";
-	
+	public static final String CATEGORYTYPE_R00605 = "R006_05" , CATEGORY_R00605 = "带教计划模板";
 	/**任务管理**/
 	public static final String CATEGORYTYPE_R00701 = "R007_01" , CATEGORY_R00701 = "督办管理";	 
 	public static final String CATEGORYTYPE_R00702 = "R007_02" , CATEGORY_R00702 = "任务控制台";	 
@@ -162,7 +192,8 @@ public class GlobalConstants {
 	public static final String CATEGORYTYPE_R00901 = "R009_01" , CATEGORY_R00901 = "绩效档案";		
 	public static final String CATEGORYTYPE_R00902 = "R009_02" , CATEGORY_R00902 = "绩效积分";	 
 	public static final String CATEGORYTYPE_R00903 = "R009_03" , CATEGORY_R00903 = "绩效合约";	 
-	public static final String CATEGORYTYPE_R00904 = "R009_04" , CATEGORY_R00904 = "年度计划";	 
+	public static final String CATEGORYTYPE_R00904 = "R009_04" , CATEGORY_R00904 = "年度计划";
+	public static final String CATEGORYTYPE_R00905 = "R009_05" , CATEGORY_R00905 = "绩效模板";
 	/**团建管理**/
 	public static final String CATEGORYTYPE_R01001 = "R010_01" , CATEGORY_R01001 = "活动策划";	 
 	public static final String CATEGORYTYPE_R01002 = "R010_02" , CATEGORY_R01002 = "活动计划";	 
@@ -186,6 +217,7 @@ public class GlobalConstants {
 	public static final String CATEGORYTYPE_R01407 = "R014_07" , CATEGORY_R01407 = "修改密码";
 	public static final String CATEGORYTYPE_R01408 = "R014_08" , CATEGORY_R01408 = "更新维护";
 	public static final String CATEGORYTYPE_R01409 = "R014_09" , CATEGORY_R01409 = "服务单维护";
+	public static final String CATEGORYTYPE_R01410 = "R014_10" , CATEGORY_R01410 = "流程管理";
 	
 	public static final Map<String, String> uploadType;  
     static  
@@ -201,6 +233,7 @@ public class GlobalConstants {
     	uploadType.put(".jpg", ".jpg"); 
     	uploadType.put(".png", ".png"); 
     	uploadType.put(".gif", ".gif"); 
+    	uploadType.put(".sql", ".sql"); 
     }  //上传类型
     
     public static final String AGE="24";
@@ -210,4 +243,10 @@ public class GlobalConstants {
 	public static final String DATE = "2018-08-08";
 	
 	public static final int TEXT_AREA_MAX_LENGTH = 2000;		//文本域字数最大值
+	
+	public static final String NEW_STATE = "新建";
+	
+	public static final String APPROVAL_STATE = "已批准";
+	
+	public static final String RELEASE_STATE = "已发布";
 }
