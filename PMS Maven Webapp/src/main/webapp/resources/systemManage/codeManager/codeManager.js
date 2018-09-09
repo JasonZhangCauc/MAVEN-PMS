@@ -16,9 +16,9 @@ var codeManager ={
 		    {"bVisible": false,"orderable": false,"sWidth": "10","data": "id"},
 		    {"orderable": false,"sWidth": "50","data": "row_id","sTitle":commonNumber},
 		    {"orderable": false,"sWidth": "50","data": "codeTypeName","sTitle":codeManagerMain_codeTypeName},
-			{"orderable": true,"sWidth": "50","data": "codeZh","sTitle":codeManagerMain_codeZh},
+			{"orderable": false,"sWidth": "50","data": "codeZh","sTitle":codeManagerMain_codeZh},
 			{"orderable": true,"sWidth": "50","data": "codeFlag","sTitle":codeManagerMain_codeFlag,"render":codeManager.render_rotate_fun},
-			{"orderable": true,"sWidth": "200","data": "codeRemark","sTitle":codeManagerMain_codeRemark},
+			{"orderable": false,"sWidth": "200","data": "codeRemark","sTitle":codeManagerMain_codeRemark},
 			{"orderable": false,"sWidth": "100","sTitle":commonOperate}
 	     ];
 		//操作列
@@ -49,13 +49,13 @@ var codeManager ={
 		var ret="";
 		if(hasEditAuthCode){
 			ret += "<a class='btn default btn-sm green-haze tooltips' data-original-title="+commonEditBtn+" href='"+basePath+"/systemManage/codeManagerEdit?operate=edit&codeId="+data+
-			"' data-target='#code-modal' data-toggle='modal'><i class='fa fa-edit'></i></a>";
+			"' data-target='#code-modal' data-toggle='modal'><i class='fa fa-edit'></i> 编辑</a>";
 		}
 		if(hasCodeDisableAuth){
 			if(full.codeFlag=="0"){
-				ret+="<a class='btn default btn-sm red tooltips' data-original-title="+codeManagerMain_disable+" onclick=\"codeManager.changeCodeDisableAuth('"+data+"','"+codeManagerMain_disableMsg+"','"+full.codeFlag+"');\" ><i class='fa fa-trash-o'></i></a>";
+				ret+="<a class='btn default btn-sm red tooltips' data-original-title="+codeManagerMain_disable+" onclick=\"codeManager.changeCodeDisableAuth('"+data+"','"+codeManagerMain_disableMsg+"','"+full.codeFlag+"');\" ><i class='fa fa-trash-o'></i> 停用</a>";
 			}else if(full.codeFlag=="1"){
-				ret+="<a class='btn default btn-sm grey-cascade tooltips' data-original-title="+codeManagerMain_enable+" onclick=\"codeManager.changeCodeDisableAuth('"+data+"','"+codeManagerMain_enableMsg+"','"+full.codeFlag+"');\" ><i class='fa fa-lock'></i></a>";
+				ret+="<a class='btn default btn-sm grey-cascade tooltips' data-original-title="+codeManagerMain_enable+" onclick=\"codeManager.changeCodeDisableAuth('"+data+"','"+codeManagerMain_enableMsg+"','"+full.codeFlag+"');\" ><i class='fa fa-lock'></i> 启用</a>";
 			}
 		}
 		$(".tooltips").tooltip();

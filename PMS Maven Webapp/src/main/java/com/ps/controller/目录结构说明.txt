@@ -2,7 +2,7 @@
 	工作台【工作单、投诉与建议】 workbenchManage
 	售前管理【客户维护、销售跟踪】 preSalesManage
 	合同管理【合同维护、合同审批、收款节点管理、合同执行情况】 pactManage
-	项目管理【项目立项、项目监控、实施监控、跟踪表、报告管理、资源管理、项目维护】 projectManage
+	项目管理【项目立项、项目监控、实施监控、跟踪表、报告管理、资产管理、项目维护】 projectManage
 	质量管理【质量控制、文档管理、管理手册】qualityManage
 	培训管理【带教计划、培训计划、晋级管理】 trainManage
 	任务管理【督办管理、任务控制台、我的任务、工时登记】 taskManage
