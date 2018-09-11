@@ -60,6 +60,12 @@
 	</choose>
   </select>
   
+  <select id="getCodeZhByTypeAndVal" resultType="String">
+  	select CODE_ZH from PMS_CODE
+  	where CODE_TYPE = #{codeType,jdbcType=VARCHAR} 
+  	AND CODE_VALUE = #{codeVal,jdbcType=VARCHAR}
+  
+  </select>
   <!-- 根据ID查询基础数据维护信息 -->
   <select id="queryCodeById" resultMap="CodeResultMap" parameterType="java.lang.String" >
     select 
@@ -124,6 +130,24 @@
     order by to_number(CODE_VALUE)
   </select>
   
+  <!-- 根据岗位查询码表数据 -->
+  <select id="initCodeInfoPlanState" resultMap="CodeResultMap" parameterType="com.ps.result.systemmanage.CodeVo">
+  	select
+    <include refid="Code_Column_List" />
+    from PMS_CODE
+    where whether_parent='1' and code_type = 'updateThePlanState'
+    <if test="codeValueStr != null and codeValueStr != '' and codeValueStr != 'null' ">
+	    and (<foreach collection="codeValueStr.split(',')" item="authDept" index="index"
+	       open="" close="" separator="or">
+	       (','||code_value||',' like '%,'||#{authDept,jdbcType=VARCHAR}||',%')
+	    </foreach>)
+	</if>
+	<if test="codeValueStr == ''">
+		and 1 != 1
+	</if>
+    order by to_number(CODE_VALUE)
+  </select>
+  
   <!-- 根据码表类型查询当前码值是否重复 -->
   <select id="getCodeInfoByCodeType" parameterType="com.ps.result.systemmanage.CodeVo"  resultMap="CodeResultMap">
   	SELECT 
@@ -167,4 +191,35 @@
   <select id="getNextCodeValueByType" resultType="java.lang.Integer" >
   	SELECT NVL(max(to_number(code_value))+1,0) FROM pms_code WHERE code_type=#{codeType,jdbcType=VARCHAR} AND whether_parent='1'
   </select>
+  
+  <!-- 查询文档类型 -->
+  <select id="initDocumentCode" resultMap="CodeResultMap">
+  	select <include refid="Code_Column_List" /> from pms_code where CODE_TYPE = #{codeType,jdbcType=VARCHAR} and whether_parent = 1
+  </select>
+  
+  <!-- 查询文档类型 -->
+  <select id="initTeachMouldCode" resultMap="CodeResultMap">
+  	select <include refid="Code_Column_List" /> from pms_code where CODE_TYPE = #{codeType,jdbcType=VARCHAR} and whether_parent = 1
+  </select>
+  
+  <!-- 查询文档类型 -->
+  <select id="getProjectType" resultMap="CodeResultMap">
+  	select <include refid="Code_Column_List" /> from pms_code where CODE_TYPE = #{codeType,jdbcType=VARCHAR} and whether_parent = 1
+  	<if test="codeValue !=null and codeValue!=''">
+  		and code_value = #{codeValue,jdbcType=VARCHAR}
+  	</if>
+  </select>
+  
+  <!-- 查询督办信息 -->
+  <select id="overStatus" resultMap="CodeResultMap">
+  	select <include refid="Code_Column_List" /> from pms_code where CODE_TYPE = 'overseeStatus' and whether_parent = 1
+  	 AND (
+		  <foreach collection="statusStrs.split(',')" item="authDept" index="index"
+		      open="" close="" separator="or">
+		      (','||code_value||',' like '%,'||#{authDept,jdbcType=VARCHAR}||',%')
+		  </foreach>
+		  )
+  
+  </select>
+  
 </mapper>
